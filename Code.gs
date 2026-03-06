@@ -39,11 +39,14 @@ const SH = {
   JOURNAL:         'PFMP_JOURNAL',
   EVAL_TUTEUR:     'PFMP_EVAL',
   CUSTOM_CRITERIA: 'CUSTOM_CRITERIA',
+  USERS:           'USERS',
+  ADMIN_LOG:       'ADMIN_LOG',
   CONFIG:          'CONFIG',
   LOG:             'LOG',
 };
 
 let _masterKeyCache = null;
+let _adminKeyCache = null;
 
 function getMasterKey() {
   if (_masterKeyCache) return _masterKeyCache;
@@ -64,6 +67,28 @@ function getMasterKey() {
   }
   _masterKeyCache = MASTER_KEY_LEGACY;
   return _masterKeyCache;
+}
+
+function getAdminKey() {
+  if (_adminKeyCache) return _adminKeyCache;
+  try {
+    const ss    = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = ss.getSheetByName(SH.CONFIG);
+    if (sheet) {
+      const rows = sheet.getDataRange().getValues();
+      for (let i = 1; i < rows.length; i++) {
+        if (rows[i][0] === 'admin_key' && rows[i][1]) {
+          _adminKeyCache = String(rows[i][1]).trim();
+          return _adminKeyCache;
+        }
+      }
+    }
+  } catch (e) {
+    Logger.log('[getAdminKey] Erreur : ' + e.message);
+  }
+  // Par défaut, la clé admin = clé master (rétrocompatible)
+  _adminKeyCache = getMasterKey();
+  return _adminKeyCache;
 }
 
 // ═══ [B] POINT D'ENTRÉE HTTP ═══
@@ -131,6 +156,15 @@ function doGet(e) {
       // ═══ ALERTES ═══
       case 'getAlertes':           return out(getAlertes());
 
+      // ═══ ADMIN ═══
+      case 'getUsers':             return out(getUsers(role));
+      case 'addUser':              return out(addUser(JSON.parse(p.data || '{}'), role));
+      case 'updateUser':           return out(updateUser(p.userId, JSON.parse(p.data || '{}'), role));
+      case 'deleteUser':           return out(deleteUser(p.userId, role));
+      case 'rotateKey':            return out(rotateKey(p.keyType, role));
+      case 'getAdminLog':          return out(getAdminLog(role));
+      case 'generateTokens':       return out(generateTokens(p.eleve, role));
+
       default: return out({ error: 'Action inconnue : ' + action, code: 400 });
     }
 
@@ -146,8 +180,24 @@ function doGet(e) {
 function auth(p) {
   const key = p.key || '';
 
+  // Admin avec admin key
+  if (key === getAdminKey()) return { role: 'admin', qui: 'admin' };
+
   // Prof avec master key
   if (key === getMasterKey()) return { role: 'prof', qui: 'prof' };
+
+  // Utilisateur enregistré dans USERS
+  if (key) {
+    const user = findUserByKey(key);
+    if (user && user.actif !== false) {
+      return { 
+        role: user.role === 'ADMIN' ? 'admin' : (user.role === 'ENSEIGNANT' ? 'prof' : 'lecture'),
+        qui: user.email || user.nom,
+        userId: user.id,
+        classes: user.classes ? JSON.parse(user.classes) : []
+      };
+    }
+  }
 
   // Élève avec token
   if (p.token) {
@@ -218,6 +268,16 @@ function verifyEleveToken(token) {
 function findEleveByToken(token) {
   const rows = getSheetData(SH.ELEVES);
   return rows.find(r => r.token_eleve === token) || null;
+}
+
+function findUserByKey(key) {
+  try {
+    ensureSheet(SH.USERS, ['id', 'nom', 'prenom', 'email', 'role', 'classes', 'key', 'actif', 'created_at', 'updated_at']);
+    const rows = getSheetData(SH.USERS);
+    return rows.find(r => r.key === key && r.actif !== false) || null;
+  } catch(e) {
+    return null;
+  }
 }
 
 // ═══ [TUTEUR-1] VÉRIFICATION TOKEN TUTEUR ═══
@@ -718,7 +778,191 @@ function uuid() {
   });
 }
 
-// ═══ TESTS LOCAUX ═══
+// ═══ [M] ADMIN — GESTION UTILISATEURS ═══
+
+function isAdmin(role) {
+  // Seul un utilisateur avec la clé admin peut gérer les utilisateurs
+  return role && role.role === 'admin';
+}
+
+function getUsers(role) {
+  if (!role || (role.role !== 'prof' && role.role !== 'admin')) {
+    return { error: 'Accès refusé', code: 403 };
+  }
+  
+  ensureSheet(SH.USERS, ['id', 'nom', 'prenom', 'email', 'role', 'classes', 'actif', 'created_at', 'updated_at']);
+  const rows = getSheetData(SH.USERS);
+  
+  // Si pas admin, ne renvoie que les infos basiques
+  if (role.role !== 'admin') {
+    return rows.filter(r => r.actif !== false).map(r => ({
+      id: r.id,
+      nom: r.nom,
+      prenom: r.prenom,
+      role: r.role
+    }));
+  }
+  
+  return rows;
+}
+
+function addUser(data, role) {
+  if (!isAdmin(role)) return { error: 'Réservé aux administrateurs', code: 403 };
+  if (!data.nom || !data.email) return { error: 'Nom et email requis', code: 400 };
+  
+  ensureSheet(SH.USERS, ['id', 'nom', 'prenom', 'email', 'role', 'classes', 'key', 'actif', 'created_at', 'updated_at']);
+  
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(SH.USERS);
+  const now = new Date().toISOString();
+  const id = 'USR-' + uuid().slice(0, 8).toUpperCase();
+  const userKey = genToken();
+  
+  sheet.appendRow([
+    id,
+    data.nom || '',
+    data.prenom || '',
+    data.email || '',
+    data.role || 'LECTURE',
+    JSON.stringify(data.classes || []),
+    userKey,
+    true,
+    now,
+    now
+  ]);
+  
+  logAdmin('ADD_USER', id, role.qui);
+  
+  return { ok: true, id, key: userKey };
+}
+
+function updateUser(userId, data, role) {
+  if (!isAdmin(role)) return { error: 'Réservé aux administrateurs', code: 403 };
+  if (!userId) return { error: 'userId requis', code: 400 };
+  
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(SH.USERS);
+  if (!sheet) return { error: 'Onglet USERS introuvable', code: 500 };
+  
+  const rows = sheet.getDataRange().getValues();
+  const hdrs = rows[0];
+  const now = new Date().toISOString();
+  
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === userId) {
+      if (data.nom !== undefined) sheet.getRange(i+1, hdrs.indexOf('nom')+1).setValue(data.nom);
+      if (data.prenom !== undefined) sheet.getRange(i+1, hdrs.indexOf('prenom')+1).setValue(data.prenom);
+      if (data.email !== undefined) sheet.getRange(i+1, hdrs.indexOf('email')+1).setValue(data.email);
+      if (data.role !== undefined) sheet.getRange(i+1, hdrs.indexOf('role')+1).setValue(data.role);
+      if (data.classes !== undefined) sheet.getRange(i+1, hdrs.indexOf('classes')+1).setValue(JSON.stringify(data.classes));
+      if (data.actif !== undefined) sheet.getRange(i+1, hdrs.indexOf('actif')+1).setValue(data.actif);
+      sheet.getRange(i+1, hdrs.indexOf('updated_at')+1).setValue(now);
+      
+      logAdmin('UPDATE_USER', userId, role.qui);
+      return { ok: true, updated: true };
+    }
+  }
+  
+  return { error: 'Utilisateur introuvable', code: 404 };
+}
+
+function deleteUser(userId, role) {
+  if (!isAdmin(role)) return { error: 'Réservé aux administrateurs', code: 403 };
+  if (!userId) return { error: 'userId requis', code: 400 };
+  
+  // Soft delete — on désactive, on ne supprime pas
+  const result = updateUser(userId, { actif: false }, role);
+  if (result.ok) {
+    logAdmin('DELETE_USER', userId, role.qui);
+  }
+  return result;
+}
+
+function rotateKey(keyType, role) {
+  if (!isAdmin(role)) return { error: 'Réservé aux administrateurs', code: 403 };
+  
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+  const sheet = ss.getSheetByName(SH.CONFIG);
+  if (!sheet) return { error: 'Onglet CONFIG introuvable', code: 500 };
+  
+  const rows = sheet.getDataRange().getValues();
+  const newKey = genToken() + '-' + genToken();
+  const now = new Date().toISOString();
+  
+  const keyName = keyType === 'admin' ? 'admin_key' : 'master_key';
+  
+  for (let i = 1; i < rows.length; i++) {
+    if (rows[i][0] === keyName) {
+      // Archiver l'ancienne clé
+      const oldKey = rows[i][1];
+      sheet.getRange(i+1, 3).setValue(oldKey); // Colonne C = old_value
+      sheet.getRange(i+1, 2).setValue(newKey);
+      sheet.getRange(i+1, 4).setValue(now); // Colonne D = updated_at
+      
+      // Invalider le cache
+      if (keyType === 'admin') _adminKeyCache = null;
+      else _masterKeyCache = null;
+      
+      logAdmin('ROTATE_KEY', keyType, role.qui);
+      return { ok: true, newKey, rotatedAt: now };
+    }
+  }
+  
+  // Clé pas trouvée, on la crée
+  sheet.appendRow([keyName, newKey, '', now]);
+  logAdmin('CREATE_KEY', keyType, role.qui);
+  
+  return { ok: true, newKey, created: true };
+}
+
+function generateTokens(eleveCode, role) {
+  if (!role || (role.role !== 'prof' && role.role !== 'admin')) {
+    return { error: 'Accès refusé', code: 403 };
+  }
+  if (!eleveCode) return { error: 'Code élève requis', code: 400 };
+  
+  const tokenEleve = genToken();
+  const tokenTuteur = genToken();
+  
+  const result = updateEleve(eleveCode, {
+    token_eleve: tokenEleve,
+    token_tuteur: tokenTuteur
+  });
+  
+  if (result.error) return result;
+  
+  logAdmin('GENERATE_TOKENS', eleveCode, role.qui);
+  
+  return {
+    ok: true,
+    eleve: eleveCode,
+    token_eleve: tokenEleve,
+    token_tuteur: tokenTuteur
+  };
+}
+
+function getAdminLog(role) {
+  if (!isAdmin(role)) return { error: 'Réservé aux administrateurs', code: 403 };
+  
+  ensureSheet(SH.ADMIN_LOG, ['timestamp', 'action', 'target', 'actor', 'details']);
+  const rows = getSheetData(SH.ADMIN_LOG);
+  
+  // Retourner les 100 dernières entrées
+  return rows.slice(-100).reverse();
+}
+
+function logAdmin(action, target, actor) {
+  try {
+    ensureSheet(SH.ADMIN_LOG, ['timestamp', 'action', 'target', 'actor', 'details']);
+    const ss = SpreadsheetApp.openById(SHEET_ID);
+    const sheet = ss.getSheetByName(SH.ADMIN_LOG);
+    if (sheet) {
+      sheet.appendRow([new Date().toISOString(), action, target, actor, '']);
+    }
+  } catch(e) { /* Log non bloquant */ }
+}
+
+// ═══ [N] TESTS LOCAUX ═══
 function testAPI() {
   const fakeE = { parameter: { key: getMasterKey(), action: 'getDashboard' } };
   Logger.log(doGet(fakeE).getContent());
