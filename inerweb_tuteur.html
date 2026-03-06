@@ -387,14 +387,18 @@ const TACHES={
 };
 
 const COMPORTEMENTS=[
-  {ico:"⏰",txt:"Ponctualité et assiduité",key:"ponctualite"},
-  {ico:"👔",txt:"Tenue et hygiène professionnelle",key:"tenue"},
-  {ico:"🤝",txt:"Respect des collègues et clients",key:"respect"},
-  {ico:"💡",txt:"Initiative et autonomie",key:"initiative"},
-  {ico:"📖",txt:"Application des consignes",key:"consignes"},
-  {ico:"🔒",txt:"Respect des règles de sécurité",key:"securite"},
-  {ico:"📈",txt:"Progression et motivation",key:"progression"},
-  {ico:"🗣️",txt:"Communication avec l'équipe",key:"communication"},
+  {ico:"⏰",key:"ponctualite",txt:"Ponctualité & assiduité",
+   niveaux:["Absences/retards fréquents non justifiés","Retards ou absences occasionnels","Retards rares et justifiés","Toujours à l'heure, jamais absent"]},
+  {ico:"👷",key:"tenue",txt:"Tenue professionnelle & EPI",
+   niveaux:["Tenue inadaptée, EPI jamais portés","EPI portés irrégulièrement","Tenue correcte, EPI portés sur demande","Tenue irréprochable, EPI systématiques"]},
+  {ico:"🤝",key:"relations",txt:"Relations avec l'équipe",
+   niveaux:["Conflits fréquents ou isolement","Peu communicatif, passif","S'intègre correctement à l'équipe","Excellent esprit d'équipe, communique bien"]},
+  {ico:"💡",key:"initiative",txt:"Initiative & autonomie",
+   niveaux:["Attend toujours les instructions","Peu proactif, nécessite d'être guidé","Prend des initiatives raisonnables","Autonome, anticipe les besoins"]},
+  {ico:"📖",key:"consignes",txt:"Respect des consignes & sécurité",
+   niveaux:["Ne respecte pas les consignes","Respecte avec rappels fréquents","Respecte généralement les consignes","Respecte et mémorise toutes les consignes"]},
+  {ico:"📈",key:"progression",txt:"Progression & motivation",
+   niveaux:["Aucune progression visible","Progression lente","Progression régulière","Progression rapide, très motivé"]},
 ];
 
 /* ═══ ÉTAT ═══ */
@@ -560,11 +564,13 @@ function renderStagiaireInfo(){
 }
 
 /* ═══ RENDU ÉVALUATION EP2 ═══ */
+const sid=c=>c.replace(/\./g,'_'); // C3.1 → C3_1 (IDs sans points)
+
 function renderEval(){
-  const pfmp=document.getElementById('selPfmp')?.value||'pfmp1';
   const c=document.getElementById('evalContenu');
   c.innerHTML='';
   COMP_EP2.forEach(comp=>{
+    const id=sid(comp.code);
     if(!evalData[comp.code])evalData[comp.code]={niveau:'NE',taches:{}};
     const niv=evalData[comp.code].niveau||'NE';
     const taches=TACHES[comp.code]||[];
@@ -578,15 +584,14 @@ function renderEval(){
     const nivBtns=['PM','M','EC','NE'].map(n=>`<button class="nb ${n}${niv===n?' sel':''}" onclick="setNiv('${comp.code}','${n}',this)">${n}</button>`).join('');
     const el=document.createElement('div');
     el.className='comp-block';
-    el.id='cb-'+comp.code;
     el.innerHTML=`
-      <div class="comp-hdr" onclick="toggleComp('${comp.code}')">
+      <div class="comp-hdr" id="hdr-${id}" onclick="toggleComp('${comp.code}')">
         <span class="comp-code">${comp.code}</span>
         <span class="comp-nom">${comp.full}</span>
         ${comp.obl?'<span class="comp-oblig">✱ Oblig.</span>':''}
         <span class="comp-arrow">▼</span>
       </div>
-      <div class="comp-body" id="body-${comp.code}">
+      <div class="comp-body" id="body-${id}">
         <p class="comp-full">${comp.full}</p>
         <div class="niv-global">
           <span class="niv-lbl">Niveau global :</span>
@@ -595,7 +600,7 @@ function renderEval(){
         ${taches.length?`<div class="taches-titre">Tâches observées :</div>${tachesHtml}`:''}
         <div class="fr" style="margin-top:.5rem;margin-bottom:0">
           <label>Observation (optionnel)</label>
-          <textarea class="obs-area" id="obs-${comp.code}" placeholder="Remarque sur cette compétence..." style="min-height:60px" oninput="evalData['${comp.code}'].obs=this.value"></textarea>
+          <textarea class="obs-area" id="obs-${id}" placeholder="Remarque sur cette compétence..." style="min-height:60px" oninput="evalData['${comp.code}'].obs=this.value"></textarea>
         </div>
       </div>`;
     c.appendChild(el);
@@ -603,8 +608,10 @@ function renderEval(){
 }
 
 function toggleComp(code){
-  const hdr=document.querySelector(`#cb-${code} .comp-hdr`);
-  const body=document.getElementById('body-'+code);
+  const id=sid(code);
+  const hdr=document.getElementById('hdr-'+id);
+  const body=document.getElementById('body-'+id);
+  if(!hdr||!body)return;
   hdr.classList.toggle('open');
   body.classList.toggle('open');
 }
@@ -627,19 +634,36 @@ function cycleTache(code,i,el){
 /* ═══ COMPORTEMENT ═══ */
 function renderBehav(){
   const g=document.getElementById('behavGrid');
+  const colors=['#fde8e6','#fff3ee','#d4f4e2','#e8f0f8'];
+  const tcolors=['#c0390f','#c0540f','#1a7d3e','#1b3a63'];
   g.innerHTML=COMPORTEMENTS.map(b=>`
-    <div class="behav-item" id="beh-${b.key}" onclick="toggleBehav('${b.key}')">
-      <span class="behav-ico">${b.ico}</span>
-      <span class="behav-txt">${b.txt}</span>
+    <div style="background:#fff;border-radius:14px;padding:.85rem;margin-bottom:.5rem;box-shadow:0 2px 8px rgba(27,58,99,.08)">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.6rem">
+        <span style="font-size:1.3rem">${b.ico}</span>
+        <span style="font-size:.85rem;font-weight:800;color:#1b3a63">${b.txt}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.35rem">
+        ${b.niveaux.map((txt,i)=>`
+          <div id="beh-${b.key}-${i}" onclick="setBehav('${b.key}',${i})"
+            style="padding:.5rem .6rem;border-radius:8px;background:${colors[i]};cursor:pointer;border:2px solid transparent;transition:all .2s">
+            <div style="font-size:.65rem;font-weight:900;color:${tcolors[i]};margin-bottom:.2rem">Niveau ${i}</div>
+            <div style="font-size:.72rem;font-weight:700;line-height:1.3">${txt}</div>
+          </div>`).join('')}
+      </div>
     </div>`).join('');
 }
 
-function toggleBehav(key){
-  const el=document.getElementById('beh-'+key);
-  const cur=behavData[key];
-  if(!cur){behavData[key]='ok';el.className='behav-item sel-ok';}
-  else if(cur==='ok'){behavData[key]='ko';el.className='behav-item sel-ko';}
-  else{delete behavData[key];el.className='behav-item';}
+function setBehav(key,niveau){
+  for(let i=0;i<4;i++){
+    const el=document.getElementById('beh-'+key+'-'+i);
+    if(el)el.style.borderColor='transparent';
+  }
+  if(behavData[key]===niveau){delete behavData[key];}
+  else{
+    behavData[key]=niveau;
+    const sel=document.getElementById('beh-'+key+'-'+niveau);
+    if(sel)sel.style.borderColor='#1b3a63';
+  }
 }
 
 /* ═══ ENVOI ═══ */

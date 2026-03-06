@@ -317,6 +317,7 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
     <button class="nav-btn" data-tab="ep3" onclick="switchTab('ep3')"><span class="ni">⚡</span>EP3</button>
     <button class="nav-btn" data-tab="stage" onclick="switchTab('stage')"><span class="ni">🏢</span>Stage</button>
     <button class="nav-btn" data-tab="bilan" onclick="switchTab('bilan')"><span class="ni">🏆</span>Bilan</button>
+    <button class="nav-btn" data-tab="rapport" onclick="switchTab('rapport')"><span class="ni">📝</span>Rapport</button>
     <button class="nav-btn" data-tab="export" onclick="switchTab('export')"><span class="ni">📤</span>Export</button>
     <button class="nav-btn" data-tab="config" onclick="switchTab('config')"><span class="ni">⚙️</span>Config</button>
   </nav>
@@ -395,12 +396,28 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
     <div class="tab-pane" id="tab-stage"><div class="tab-inner">
       <div class="stage-tabs">
         <button class="stage-tab active" data-sp="suivi" onclick="switchStagePanel('suivi')">📓 Suivi élèves</button>
-        <button class="stage-tab" data-sp="partenaires" onclick="switchStagePanel('partenaires')">🏢 Partenaires</button>
-        <button class="stage-tab" data-sp="comm" onclick="switchStagePanel('comm')">📣 Communication</button>
+        <button class="stage-tab" data-sp="tuteurs" onclick="switchStagePanel('tuteurs')">🏢 Évals tuteurs</button>
+        <button class="stage-tab" data-sp="partenaires" onclick="switchStagePanel('partenaires')">📋 Partenaires</button>
+        <button class="stage-tab" data-sp="comm" onclick="switchStagePanel('comm')">📣 Comm.</button>
       </div>
       <div class="stage-panel active" id="sp-suivi">
         <div id="stageList"><div class="empty"><div class="ei">🏢</div><p>Chargement...</p></div></div>
       </div>
+
+      <!-- PANEL ÉVALS TUTEURS -->
+      <div class="stage-panel" id="sp-tuteurs">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
+          <span style="font-weight:800;color:var(--bleu);font-size:.9rem">🏢 Évaluations reçues des tuteurs</span>
+          <button class="btn btn-ghost btn-sm" onclick="loadTuteurEvals()">🔄 Actualiser</button>
+        </div>
+        <div class="fr" style="margin-bottom:.75rem">
+          <select id="selTuteurEleve" onchange="afficherEvalTuteur(this.value)" style="padding:.5rem .75rem;border:2px solid var(--gris3);border-radius:var(--r2);font-weight:700;font-size:.85rem;">
+            <option value="">— Choisir un élève —</option>
+          </select>
+        </div>
+        <div id="tuteurEvalContenu"><div class="empty"><div class="ei">🏢</div><p>Sélectionnez un élève</p></div></div>
+      </div>
+
       <div class="stage-panel" id="sp-partenaires">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
           <span style="font-weight:800;color:var(--bleu)">🏢 Partenaires CRM</span>
@@ -437,6 +454,21 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
         </div>
       </div>
       <div id="bilanContent"><div class="empty"><div class="ei">🏆</div><p>Sélectionnez un élève</p></div></div>
+    </div></div>
+
+    <!-- RAPPORT DE STAGE -->
+    <div class="tab-pane" id="tab-rapport"><div class="tab-inner">
+      <div class="eval-hdr" style="margin-bottom:.75rem;">
+        <div class="eval-sel-wrap">
+          <select id="selRapport" onchange="selectStudent(this.value,'rapport')"></select>
+          <div class="nav-arrows"><button onclick="navStudent(-1,'rapport')">◀</button><button onclick="navStudent(1,'rapport')">▶</button></div>
+        </div>
+        <select id="selRapportPfmp" style="padding:.4rem .6rem;border:2px solid var(--gris3);border-radius:var(--r2);font-weight:700;font-size:.78rem">
+          <option value="pfmp1">PFMP 1</option>
+          <option value="pfmp2">PFMP 2</option>
+        </select>
+      </div>
+      <div id="rapportContent"><div class="empty"><div class="ei">📝</div><p>Sélectionnez un élève</p></div></div>
     </div></div>
 
     <!-- EXPORT -->
@@ -698,16 +730,18 @@ function switchTab(tab){
   if(tab==='ep2'){popSelects();renderEP2();}
   if(tab==='ep3'){popSelects();renderEP3();}
   if(tab==='bilan'){popSelects();if(cur)renderBilan();}
+  if(tab==='rapport'){popSelectsRapport();if(cur)renderRapport();}
   if(tab==='stage')renderStage();
   if(tab==='export')renderJournal();
   if(tab==='eleves')renderEleves();
 }
 function selectStudent(code,ctx){
   cur=code;
-  ['selEP2','selEP3','selBilan'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=code;});
+  ['selEP2','selEP3','selBilan','selRapport'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=code;});
   if(ctx==='ep2')renderEP2();
   if(ctx==='ep3')renderEP3();
   if(ctx==='bilan')renderBilan();
+  if(ctx==='rapport')renderRapport();
 }
 function navStudent(dir,ctx){
   if(!students.length)return;
@@ -877,7 +911,6 @@ async function saveObs(comp,ep,txt){
   await pushVal({epreuve:ep,competence:comp,critere:'__obs__',niveau:txt,contexte:''});
 }
 
-/* ═══ [G] STAGE ═══ */
 function renderStage(){renderSuivi();}
 function renderSuivi(){
   const c=document.getElementById('stageList');
@@ -895,9 +928,103 @@ function renderSuivi(){
       <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.5rem">
         <button class="btn btn-teal btn-xs" onclick="viewJournal('${s.code}')">📓 Journal</button>
         <button class="btn btn-ghost btn-xs" onclick="showQR('${s.code}')">📱 QR élève+tuteur</button>
+        <button class="btn btn-orange btn-xs" onclick="voirEvalTuteur('${s.code}')">🏢 Éval tuteur</button>
       </div>
     </div>`;
   }).join('');
+}
+
+/* ═══ ÉVALS TUTEURS ═══ */
+let _tuteurEvals={};
+
+async function loadTuteurEvals(){
+  const sel=document.getElementById('selTuteurEleve');
+  // Peupler le sélecteur
+  sel.innerHTML='<option value="">— Choisir un élève —</option>'+
+    students.map(s=>`<option value="${s.code}">${s.nom} ${s.prenom||''}</option>`).join('');
+  toast('Sélectionnez un élève','inf');
+}
+
+async function afficherEvalTuteur(code){
+  if(!code)return;
+  const c=document.getElementById('tuteurEvalContenu');
+  c.innerHTML='<div class="empty"><div class="ei">⏳</div><p>Chargement...</p></div>';
+  try{
+    const p=new URLSearchParams({action:'getTuteurEvals',eleve:code,key:cfg.apiKey});
+    const r=await fetch(`${cfg.apiUrl}?${p}`,{redirect:'follow'});
+    const d=await r.json();
+    _tuteurEvals[code]=d;
+    renderTuteurEvalDetail(code,d);
+  }catch{
+    // Chercher dans les validations locales (obs tuteur)
+    const obs=(validations[code]||[]).filter(v=>v.phase==='tuteur');
+    renderTuteurEvalDetail(code,obs.length?{validations:obs}:null);
+  }
+}
+
+function voirEvalTuteur(code){
+  switchTab('stage');
+  setTimeout(()=>{
+    switchStagePanel('tuteurs');
+    const sel=document.getElementById('selTuteurEleve');
+    if(sel){
+      if(!sel.options.length||sel.options.length<2)loadTuteurEvals();
+      setTimeout(()=>{sel.value=code;afficherEvalTuteur(code);},200);
+    }
+  },100);
+}
+
+function renderTuteurEvalDetail(code,data){
+  const s=students.find(x=>x.code===code)||{};
+  const c=document.getElementById('tuteurEvalContenu');
+  if(!data||(!data.competences&&!(data.validations?.length))){
+    c.innerHTML=`<div class="alert al-info">Aucune évaluation tuteur reçue pour ${s.nom} ${s.prenom||''}.<br><small>Le tuteur doit scanner le badge de l'élève sur inerweb_tuteur.html</small></div>`;
+    return;
+  }
+
+  // Données venant de l'API getTuteurEvals
+  const comp=data.competences||{};
+  const behav=data.comportement||{};
+  const obs=data.observation||'';
+  const tutNom=data.tuteur||'—';
+  const entNom=data.entreprise||'—';
+  const periode=data.periode||'—';
+
+  const NIVEAUX_BEHAV=["Insuffisant","Passable","Correct","Excellent"];
+  const BEHAV_LABELS={
+    ponctualite:"Ponctualité",tenue:"Tenue/EPI",
+    relations:"Relations équipe",initiative:"Initiative",
+    consignes:"Consignes/Sécu",progression:"Progression"
+  };
+
+  const compRows=Object.entries(comp).map(([code2,v])=>{
+    if(code2==='__obs_tuteur__')return'';
+    const niv=v.niveau||'NE';
+    const tachesDone=Object.values(v.taches||{}).filter(Boolean).length;
+    const tachesTotal=Object.keys(v.taches||{}).length;
+    return`<div style="display:flex;align-items:center;gap:.5rem;padding:.45rem .6rem;background:var(--gris2);border-radius:var(--r2);margin-bottom:.3rem">
+      <span style="font-family:monospace;font-size:.7rem;font-weight:800;color:var(--teal);background:var(--teal2);padding:.1rem .35rem;border-radius:4px">${code2}</span>
+      <span style="flex:1;font-size:.78rem;font-weight:700">${code2}</span>
+      <span class="lv-badge lv-${niv}">${niv}</span>
+      ${tachesTotal?`<span style="font-size:.65rem;color:var(--gris)">${tachesDone}/${tachesTotal} tâches</span>`:''}
+    </div>`;
+  }).join('');
+
+  const behavRows=Object.entries(behav).map(([k,n])=>`
+    <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem">
+      <span style="font-size:.75rem;font-weight:700;flex:1">${BEHAV_LABELS[k]||k}</span>
+      <span style="font-size:.7rem;font-weight:800;padding:.2rem .5rem;border-radius:var(--r2);background:var(--gris2)">${NIVEAUX_BEHAV[n]||n}</span>
+    </div>`).join('');
+
+  c.innerHTML=`
+    <div class="card" style="border-top:3px solid var(--teal)">
+      <div class="card-title">🏢 ${entNom}</div>
+      <div style="font-size:.78rem;color:var(--gris);margin-bottom:.5rem">👤 Tuteur : <strong>${tutNom}</strong> · Période : <strong>${periode}</strong></div>
+      ${compRows?`<div style="font-weight:800;font-size:.8rem;color:var(--bleu);margin-bottom:.4rem">Compétences EP2</div>${compRows}`:''}
+      ${behavRows?`<div style="font-weight:800;font-size:.8rem;color:var(--bleu);margin:.6rem 0 .4rem">Comportement professionnel</div>${behavRows}`:''}
+      ${obs?`<div style="font-weight:800;font-size:.8rem;color:var(--bleu);margin:.6rem 0 .3rem">Observation générale</div>
+             <div style="font-size:.82rem;background:var(--gris2);padding:.6rem .75rem;border-radius:var(--r2);font-style:italic">"${obs}"</div>`:''}
+    </div>`;
 }
 function viewJournal(code){
   const s=students.find(x=>x.code===code)||{};
@@ -978,6 +1105,98 @@ function calcNote(code,ep){
   const note=max?Math.round(tot/max*20*10)/10:0;
   return{note,elig:note>=10,det,tot:tot.toFixed(1),max:max.toFixed(1)};
 }
+/* ═══ [H-bis] RAPPORT DE STAGE ═══ */
+let rapportData={};// {code: {pfmp1:{...}, pfmp2:{...}}}
+
+const CRIT_RAPPORT_PRO=[
+  {key:"activites",    lbl:"Activités décrites",     sub:"Ce qu'il a fait, vu, réalisé en entreprise"},
+  {key:"technique",   lbl:"Vocabulaire technique",   sub:"Utilisation correcte des termes du métier"},
+  {key:"illustrations",lbl:"Illustrations",          sub:"Photos, schémas, croquis commentés"},
+  {key:"reflexion",   lbl:"Lien avec la formation",  sub:"Rapport entre les activités et le référentiel"},
+];
+const CRIT_RAPPORT_FR=[
+  {key:"presentation", lbl:"Présentation & mise en page", sub:"Soin, lisibilité, structure"},
+  {key:"orthographe",  lbl:"Expression écrite",           sub:"Orthographe, grammaire, syntaxe"},
+  {key:"bilan",        lbl:"Bilan personnel",             sub:"Réflexivité, ce qu'il a appris, ressenti"},
+  {key:"powerpoint",   lbl:"Support PowerPoint",          sub:"Si oral prévu : qualité du support"},
+];
+const NIVEAUX_R=["Non rendu / Absent","Insuffisant","Correct","Bien","Très bien"];
+const COULEURS_R=["#fde8e6","#fff3ee","#fef9e7","#d4f4e2","#e8f0f8"];
+const TCOULEURS_R=["#c0390f","#c05a0f","#a06e00","#1a7d3e","#1b3a63"];
+
+function popSelectsRapport(){
+  const html=students.map(s=>`<option value="${s.code}">${s.nom} ${s.prenom||''} — ${s.classe||''}</option>`).join('');
+  const sel=document.getElementById('selRapport');
+  if(sel){sel.innerHTML=html;if(cur)sel.value=cur;}
+}
+
+function renderRapport(){
+  const c=document.getElementById('rapportContent');
+  if(!cur){c.innerHTML='<div class="empty"><div class="ei">📝</div><p>Sélectionnez un élève</p></div>';return;}
+  const s=students.find(x=>x.code===cur)||{};
+  const pfmp=document.getElementById('selRapportPfmp')?.value||'pfmp1';
+  if(!rapportData[cur])rapportData[cur]={};
+  if(!rapportData[cur][pfmp])rapportData[cur][pfmp]={pro:{},fr:{},obs_pro:'',obs_fr:''};
+  const d=rapportData[cur][pfmp];
+
+  const makeGrid=(criteres,secteur)=>criteres.map(cr=>{
+    const niv=d[secteur][cr.key]??-1;
+    const btns=NIVEAUX_R.map((n,i)=>`
+      <div onclick="setRapportNiv('${cr.key}','${secteur}',${i})"
+        style="padding:.4rem .5rem;border-radius:var(--r2);background:${COULEURS_R[i]};cursor:pointer;border:2px solid ${niv===i?TCOULEURS_R[i]:'transparent'};transition:var(--t)">
+        <div style="font-size:.6rem;font-weight:900;color:${TCOULEURS_R[i]}">${i}</div>
+        <div style="font-size:.68rem;font-weight:700;line-height:1.2">${n}</div>
+      </div>`).join('');
+    return`<div style="background:var(--gris2);border-radius:var(--r2);padding:.65rem .75rem;margin-bottom:.5rem">
+      <div style="font-size:.82rem;font-weight:800;color:var(--bleu);margin-bottom:.15rem">${cr.lbl}</div>
+      <div style="font-size:.72rem;color:var(--gris);margin-bottom:.5rem">${cr.sub}</div>
+      <div id="rg-${secteur}-${cr.key}" style="display:grid;grid-template-columns:repeat(5,1fr);gap:.25rem">${btns}</div>
+    </div>`;
+  }).join('');
+
+  c.innerHTML=`
+    <div class="card" style="border-top:3px solid var(--bleu2)">
+      <div class="card-title">🔧 Évaluation prof de pro — ${s.nom} ${s.prenom||''}</div>
+      ${makeGrid(CRIT_RAPPORT_PRO,'pro')}
+      <div class="fr" style="margin-top:.5rem;margin-bottom:0">
+        <label>Observation prof de pro</label>
+        <textarea id="obs_pro" rows="2" style="width:100%;padding:.5rem;border:2px solid var(--gris3);border-radius:var(--r2);font-size:.85rem" 
+          placeholder="Points forts, axes d'amélioration..."
+          oninput="rapportData['${cur}']['${pfmp}'].obs_pro=this.value">${d.obs_pro||''}</textarea>
+      </div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--violet)">
+      <div class="card-title" style="color:var(--violet)">📖 Évaluation prof de français</div>
+      ${makeGrid(CRIT_RAPPORT_FR,'fr')}
+      <div class="fr" style="margin-top:.5rem;margin-bottom:0">
+        <label>Observation prof de français</label>
+        <textarea id="obs_fr" rows="2" style="width:100%;padding:.5rem;border:2px solid var(--gris3);border-radius:var(--r2);font-size:.85rem"
+          placeholder="Expression, orthographe, bilan personnel..."
+          oninput="rapportData['${cur}']['${pfmp}'].obs_fr=this.value">${d.obs_fr||''}</textarea>
+      </div>
+    </div>
+    <button class="btn btn-teal" onclick="sauverRapport()" style="margin-bottom:1rem">💾 Enregistrer l'évaluation rapport</button>`;
+}
+
+function setRapportNiv(key,secteur,niv){
+  const pfmp=document.getElementById('selRapportPfmp')?.value||'pfmp1';
+  if(!rapportData[cur])rapportData[cur]={};
+  if(!rapportData[cur][pfmp])rapportData[cur][pfmp]={pro:{},fr:{},obs_pro:'',obs_fr:''};
+  const cur_niv=rapportData[cur][pfmp][secteur][key];
+  rapportData[cur][pfmp][secteur][key]= cur_niv===niv ? -1 : niv;
+  renderRapport();
+}
+
+function sauverRapport(){
+  if(!cur)return;
+  const pfmp=document.getElementById('selRapportPfmp')?.value||'pfmp1';
+  // Sauvegarder dans notes locales
+  if(!notes[cur])notes[cur]={};
+  notes[cur]['rapport_'+pfmp]=rapportData[cur]?.[pfmp];
+  saveLocal();
+  toast('Évaluation rapport sauvegardée ✓','ok');
+}
+
 function renderBilan(){
   const c=document.getElementById('bilanContent');
   if(!cur){c.innerHTML='<div class="empty"><div class="ei">🏆</div><p>Sélectionnez un élève</p></div>';return;}
@@ -1476,7 +1695,108 @@ function initApp(){
   handleDeepLink();
 }
 
-/* ═══ [N] DEEP-LINK + SCANNER QR ═══ */
+/* ═══ [N2] ÉVALS TUTEURS ═══ */
+async function loadTuteurEvals(){
+  // Peupler le select élèves
+  const sel=document.getElementById('selTuteurEleve');
+  if(!sel)return;
+  sel.innerHTML='<option value="">— Choisir un élève —</option>';
+  students.forEach(s=>{
+    const o=document.createElement('option');
+    o.value=s.code;o.textContent=`${s.nom} ${s.prenom||''} (${s.code})`;
+    sel.appendChild(o);
+  });
+  // Si un élève déjà sélectionné, recharger
+  if(sel.value)afficherEvalTuteur(sel.value);
+  toast('Tuteurs : sélectionnez un élève','inf');
+}
+
+function afficherEvalTuteur(code){
+  const c=document.getElementById('tuteurEvalContenu');
+  if(!code){c.innerHTML='<div class="empty"><div class="ei">🏢</div><p>Sélectionnez un élève</p></div>';return;}
+  // Chercher dans les validations les entrées tuteur (__obs_tuteur__ ou source tuteur)
+  const vals=(validations[code]||[]).filter(v=>v.phase==='tuteur'||v.evaluateur?.toLowerCase().includes('tuteur')||v.competence==='__obs_tuteur__');
+  if(!vals.length){
+    c.innerHTML=`<div class="alert al-info">Aucune évaluation tuteur reçue pour cet élève.</div>`;
+    return;
+  }
+  // Grouper par timestamp/session
+  const NIVEAUX_COMP={
+    "C1.2":"Communiquer","C3.1":"Organisation poste","C3.2":"Identifier réseaux",
+    "C3.3":"Implanter, fixer","C3.4":"Façonner, raccorder","C3.6":"Câbler, connecter",
+    "C3.7":"Contrôles","C3.8":"Tri déchets","C3.9":"Étanchéité"
+  };
+  const BEHAV_NOM={ponctualite:"Ponctualité",tenue:"Tenue/EPI",relations:"Relations équipe",initiative:"Initiative",consignes:"Consignes/sécurité",progression:"Progression"};
+  const NIVEAUX_TXT=["Non acquis","En cours","Acquis","Maîtrisé"];
+  const NIVEAUX_CLR=["var(--rouge2)","var(--jaune2)","var(--vert2)","var(--bleu3)"];
+
+  // Trouver les payloads complets (source tuteur enrichi)
+  const payloads=(validations[code]||[]).filter(v=>v._tuteurPayload);
+  const obsEntries=vals.filter(v=>v.competence==='__obs_tuteur__');
+
+  let html='';
+  obsEntries.forEach(v=>{
+    const payload=v._tuteurPayload||{};
+    const comp=payload.competences||{};
+    const behav=payload.comportement||{};
+    const date=v.timestamp?new Date(v.timestamp).toLocaleDateString('fr-FR'):'—';
+
+    html+=`<div class="card" style="border-left:4px solid var(--teal);margin-bottom:.75rem">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.75rem">
+        <div>
+          <div style="font-weight:900;color:var(--teal);font-size:.9rem">🏢 ${v.entreprise||'Entreprise'}</div>
+          <div style="font-size:.75rem;color:var(--gris)">Tuteur : ${v.evaluateur||'—'} · ${v.contexte||''} · ${date}</div>
+        </div>
+        <span style="background:var(--teal2);color:var(--teal);font-size:.65rem;font-weight:800;padding:.2rem .5rem;border-radius:20px">${v.niveau||'—'}</span>
+      </div>`;
+
+    // Compétences évaluées
+    const compEntries=Object.entries(comp).filter(([k,v])=>v.niveau&&v.niveau!=='NE');
+    if(compEntries.length){
+      html+=`<div style="font-size:.75rem;font-weight:800;color:var(--bleu);margin-bottom:.4rem">Compétences EP2 :</div>`;
+      html+=`<div style="display:flex;flex-wrap:wrap;gap:.35rem;margin-bottom:.75rem">`;
+      compEntries.forEach(([k,cv])=>{
+        const n=cv.niveau;
+        const clr=n==='PM'?'var(--vert2)':n==='M'?'var(--bleu3)':n==='EC'?'var(--jaune2)':'var(--gris2)';
+        html+=`<span style="background:${clr};padding:.2rem .5rem;border-radius:20px;font-size:.7rem;font-weight:800">${k} ${n}</span>`;
+      });
+      html+=`</div>`;
+    }
+
+    // Comportement
+    const behavEntries=Object.entries(behav);
+    if(behavEntries.length){
+      html+=`<div style="font-size:.75rem;font-weight:800;color:var(--bleu);margin-bottom:.4rem">Comportement :</div>`;
+      html+=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem;margin-bottom:.75rem">`;
+      behavEntries.forEach(([k,niv])=>{
+        const clr=niv===0?'var(--rouge2)':niv===1?'var(--jaune2)':niv===2?'var(--vert2)':'var(--bleu3)';
+        html+=`<div style="background:${clr};padding:.35rem .5rem;border-radius:6px;font-size:.7rem;font-weight:700">${BEHAV_NOM[k]||k} : ${niv}/3</div>`;
+      });
+      html+=`</div>`;
+    }
+
+    // Observation
+    if(v.observation){
+      html+=`<div style="background:var(--gris2);border-radius:8px;padding:.6rem .75rem;font-size:.8rem;font-style:italic;color:var(--texte)">"${v.observation}"</div>`;
+    }
+    html+=`</div>`;
+  });
+
+  // Si pas de payload enrichi, afficher les validations brutes
+  if(!obsEntries.length){
+    html='<div class="alert al-info" style="font-size:.8rem">Évaluations reçues (format simplifié) :</div>';
+    vals.forEach(v=>{
+      html+=`<div class="card" style="border-left:3px solid var(--teal);margin-bottom:.5rem;padding:.75rem">
+        <div style="font-size:.75rem;font-weight:800;color:var(--teal)">${v.evaluateur||'Tuteur'} — ${v.entreprise||''}</div>
+        <div style="font-size:.8rem;margin:.3rem 0">${v.epreuve} ${v.competence} → <strong>${v.niveau}</strong></div>
+        ${v.observation?`<div style="font-size:.75rem;font-style:italic;color:var(--gris)">"${v.observation}"</div>`:''}
+        <div style="font-size:.65rem;color:var(--gris);margin-top:.3rem">${v.timestamp?new Date(v.timestamp).toLocaleDateString('fr-FR'):'—'} · ${v.contexte||''}</div>
+      </div>`;
+    });
+  }
+
+  c.innerHTML=html||'<div class="alert al-info">Aucune donnée disponible.</div>';
+}
 function handleDeepLink(){
   const p=new URLSearchParams(window.location.search);
   const eleve=p.get('eleve');
