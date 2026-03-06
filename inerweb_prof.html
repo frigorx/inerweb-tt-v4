@@ -970,7 +970,7 @@ function renderDash(){
     ['statTotal','statAlertes','statClos','statActifs'].forEach(id=>document.getElementById(id).textContent='0');
     return;
   }
-  let al=0,cl=0,ac=0;
+  let al=0,cl=0,ac=0,journalAlerts=0;
   const cards=students.map(s=>{
     const v=validations[s.code]||[];
     const e2done=new Set(v.filter(x=>x.epreuve==='EP2').map(x=>x.competence)).size;
@@ -980,8 +980,13 @@ function renderDash(){
     const nE2=notes[s.code]?.EP2||{},nE3=notes[s.code]?.EP3||{};
     const clos=nE2.cloture&&nE3.cloture;
     const alerte=s.alerte&&!clos;
-    if(alerte)al++;if(clos)cl++;if(s.statut==='actif')ac++;
-    const cls=clos?'complet':alerte?'alerte':e2done>0?'en-cours':'';
+    // Alerte journal
+    const daysSinceJournal=calcDaysSinceLastEntry?.(s.code);
+    const journalAlert=daysSinceJournal!==null&&daysSinceJournal>=5;
+    if(journalAlert)journalAlerts++;
+    if(alerte||journalAlert)al++;if(clos)cl++;if(s.statut==='actif')ac++;
+    const cls=clos?'complet':alerte||journalAlert?'alerte':e2done>0?'en-cours':'';
+    const jColor=getAlertColor?.(daysSinceJournal)||{ico:'❓'};
     return `<div class="sc ${cls}" onclick="goEval('${s.code}')">
       <div class="sc-top">
         <div><div class="sc-nom">${s.nom} ${s.prenom||''}</div><div class="sc-cls">${s.classe||'—'}</div></div>
@@ -991,6 +996,7 @@ function renderDash(){
             ${nE2.cloture?'<span class="badge b-vert" style="font-size:.6rem">EP2✓</span>':''}
             ${nE3.cloture?'<span class="badge b-vert" style="font-size:.6rem">EP3✓</span>':''}
             ${alerte?'<span class="badge b-rouge" style="font-size:.6rem">⚠️</span>':''}
+            <span title="Journal PFMP" style="font-size:.7rem">${jColor.ico}</span>
           </div>
         </div>
       </div>
@@ -998,7 +1004,7 @@ function renderDash(){
         <div class="sc-bar-row"><span style="color:var(--ep2)">EP2</span><div class="sc-track"><div class="sc-fill f-ep2" style="width:${e2pct}%"></div></div><span>${e2done}/${COMP_EP2.length}</span></div>
         <div class="sc-bar-row"><span style="color:var(--ep3)">EP3</span><div class="sc-track"><div class="sc-fill f-ep3" style="width:${e3pct}%"></div></div><span>${e3done}/${COMP_EP3.length}</span></div>
       </div>
-      <div class="sc-bot">🕐 ${s.derniere_eval?dateFR(s.derniere_eval):'Jamais évalué'}${alerte?`<div class="sc-alerte">⚠️ ${s.alerte}</div>`:''}</div>
+      <div class="sc-bot">🕐 ${s.derniere_eval?dateFR(s.derniere_eval):'Jamais évalué'}${alerte?`<div class="sc-alerte">⚠️ ${s.alerte}</div>`:journalAlert?`<div class="sc-alerte">📓 ${daysSinceJournal}j sans journal</div>`:''}</div>
     </div>`;
   });
   g.innerHTML=cards.join('');
@@ -1112,26 +1118,119 @@ async function saveObs(comp,ep,txt){
 }
 
 function renderStage(){renderSuivi();}
+function getAlertColor(daysSince){
+  if(daysSince===null||daysSince===undefined)return{bg:'var(--gris2)',border:'var(--gris)',txt:'var(--gris)',label:'❓ Pas de données',ico:'❓'};
+  if(daysSince<=1)return{bg:'var(--vert2)',border:'var(--vert)',txt:'#1a7d3e',label:'✅ À jour',ico:'✅'};
+  if(daysSince<=2)return{bg:'#fffacd',border:'#f0e68c',txt:'#8b7500',label:'⚠️ 2 jours',ico:'⚠️'};
+  if(daysSince<=4)return{bg:'var(--jaune2)',border:'var(--jaune)',txt:'#7a5000',label:`🔶 ${daysSince} jours`,ico:'🔶'};
+  return{bg:'var(--rouge2)',border:'var(--rouge)',txt:'var(--rouge)',label:`🚨 ${daysSince} jours`,ico:'🚨'};
+}
+function calcDaysSinceLastEntry(code){
+  const pf=pfmpData[code]||{journal:[]};
+  if(!pf.journal||!pf.journal.length)return null;
+  const sorted=[...pf.journal].sort((a,b)=>new Date(b.date||b.timestamp)-new Date(a.date||a.timestamp));
+  const last=sorted[0];
+  if(!last.date&&!last.timestamp)return null;
+  const lastDate=new Date(last.date||last.timestamp);
+  const now=new Date();
+  // Calcul jours ouvrés (simplifié: tous les jours pour l'instant)
+  return Math.floor((now-lastDate)/(1000*60*60*24));
+}
 function renderSuivi(){
   const c=document.getElementById('stageList');
   if(!students.length){c.innerHTML='<div class="empty"><div class="ei">🏢</div><p>Aucun élève</p></div>';return;}
-  c.innerHTML=students.map(s=>{
+  
+  // Stats globales alertes
+  let alertCount=0,okCount=0,noDataCount=0;
+  students.forEach(s=>{
+    const days=calcDaysSinceLastEntry(s.code);
+    if(days===null)noDataCount++;
+    else if(days>=5)alertCount++;
+    else okCount++;
+  });
+  
+  const statsHtml=`<div style="display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+    <div style="background:var(--vert2);padding:.5rem .75rem;border-radius:var(--r2);font-size:.8rem;font-weight:700;color:#1a7d3e">✅ ${okCount} à jour</div>
+    ${alertCount?`<div style="background:var(--rouge2);padding:.5rem .75rem;border-radius:var(--r2);font-size:.8rem;font-weight:700;color:var(--rouge)">🚨 ${alertCount} alerte${alertCount>1?'s':''}</div>`:''}
+    ${noDataCount?`<div style="background:var(--gris2);padding:.5rem .75rem;border-radius:var(--r2);font-size:.8rem;font-weight:700;color:var(--gris)">❓ ${noDataCount} sans données</div>`:''}
+  </div>`;
+  
+  // Trier par urgence (les alertes en premier)
+  const sorted=[...students].sort((a,b)=>{
+    const daysA=calcDaysSinceLastEntry(a.code)??-1;
+    const daysB=calcDaysSinceLastEntry(b.code)??-1;
+    return daysB-daysA; // Plus de jours = plus urgent
+  });
+  
+  c.innerHTML=statsHtml+sorted.map(s=>{
     const pf=pfmpData[s.code]||{journal:[]};
-    return `<div class="se-card">
+    const days=calcDaysSinceLastEntry(s.code);
+    const alert=getAlertColor(days);
+    const photoCount=pf.journal.reduce((acc,j)=>acc+(j.photos?.length||0),0);
+    
+    return `<div class="se-card" style="border-left:4px solid ${alert.border};background:${alert.bg}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start">
-        <div><div class="se-nom">${s.nom} ${s.prenom||''}</div>
+        <div>
+          <div class="se-nom" style="color:${alert.txt}">${alert.ico} ${s.nom} ${s.prenom||''}</div>
           <div class="se-meta">${s.classe||''} · ${s.code}</div>
           <div class="se-co">🏢 ${s.entreprise_nom||'—'} · 👤 ${s.tuteur_nom||'—'}</div>
         </div>
-        <span class="j-count">📓 ${pf.journal.length} entrée${pf.journal.length!==1?'s':''}</span>
+        <div style="text-align:right">
+          <span class="j-count" style="background:#fff">📓 ${pf.journal.length}</span>
+          ${photoCount?`<span class="j-count" style="background:#fff;margin-left:.3rem">📷 ${photoCount}</span>`:''}
+        </div>
       </div>
       <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.5rem">
-        <button class="btn btn-teal btn-xs" onclick="viewJournal('${s.code}')">📓 Journal</button>
-        <button class="btn btn-ghost btn-xs" onclick="showQR('${s.code}')">📱 QR élève+tuteur</button>
+        <button class="btn btn-teal btn-xs" onclick="viewJournalDetail('${s.code}')">📓 Voir journal</button>
+        <button class="btn btn-ghost btn-xs" onclick="showQR('${s.code}')">📱 QR</button>
         <button class="btn btn-orange btn-xs" onclick="voirEvalTuteur('${s.code}')">🏢 Éval tuteur</button>
       </div>
     </div>`;
   }).join('');
+}
+function viewJournalDetail(code){
+  const s=students.find(x=>x.code===code)||{};
+  const pf=pfmpData[code]||{journal:[]};
+  
+  if(!pf.journal.length){
+    showModal(`📓 Journal — ${s.nom} ${s.prenom||''}`,'<div class="alert al-info">Aucune entrée dans le journal</div>','<button class="btn btn-ghost" onclick="closeModal()">Fermer</button>');
+    return;
+  }
+  
+  // Grouper par jour
+  const byDay={};
+  pf.journal.forEach(j=>{
+    const day=(j.date||j.timestamp||'').slice(0,10)||'inconnu';
+    if(!byDay[day])byDay[day]=[];
+    byDay[day].push(j);
+  });
+  const days=Object.keys(byDay).sort((a,b)=>b.localeCompare(a));
+  
+  const TYPE_LBL={activite:'🔧 Activité',observation:'👁️ Observation',question:'❓ Question',reflexion:'💭 Réflexion'};
+  
+  const html=days.map(day=>{
+    const entries=byDay[day].sort((a,b)=>new Date(b.date||b.timestamp)-new Date(a.date||a.timestamp));
+    const photoCount=entries.reduce((acc,e)=>acc+(e.photos?.length||0),0);
+    
+    return `<div style="margin-bottom:1rem;background:var(--gris2);border-radius:var(--r2);overflow:hidden">
+      <div style="background:var(--violet);color:#fff;padding:.5rem .75rem;display:flex;justify-content:space-between;font-size:.85rem;font-weight:700">
+        <span>📅 ${dateFR(day)}</span>
+        <span>${entries.length} entrée(s) · ${photoCount} photo(s)</span>
+      </div>
+      <div style="padding:.75rem">
+        ${entries.map(e=>{
+          const photosHtml=e.photos?.length?`<div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.5rem">${e.photos.map((p,i)=>`<img src="${p}" style="width:60px;height:60px;object-fit:cover;border-radius:4px;cursor:pointer" onclick="window.open('${p}','_blank')" title="Clic pour agrandir">`).join('')}</div>`:'';
+          return `<div style="padding:.5rem;background:#fff;border-radius:var(--r2);margin-bottom:.4rem;border-left:3px solid var(--violet)">
+            <div style="font-size:.7rem;color:var(--gris)">${new Date(e.date||e.timestamp).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})} <span style="background:var(--violet2);color:var(--violet);padding:.1rem .3rem;border-radius:3px;font-weight:700">${TYPE_LBL[e.type]||e.type||'—'}</span></div>
+            ${e.text||e.description||e.activite?`<div style="font-size:.85rem;margin-top:.3rem">${e.text||e.description||e.activite}</div>`:''}
+            ${photosHtml}
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  
+  showModal(`📓 Journal — ${s.nom} ${s.prenom||''}`,`<div style="max-height:60vh;overflow-y:auto">${html}</div>`,`<button class="btn btn-ghost" onclick="closeModal()">Fermer</button>`);
 }
 
 /* ═══ ÉVALS TUTEURS ═══ */
