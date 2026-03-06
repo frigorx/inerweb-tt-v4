@@ -173,13 +173,13 @@ body.show-app #screen-app{display:flex;}
 .crit-list{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.6rem;}
 .crit-item{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
 .crit-nom{font-size:.75rem;font-weight:600;flex:1;min-width:120px;}
-.crit-btns{display:flex;gap:.2rem;}
-.cb{padding:.35rem .6rem;border-radius:6px;border:2px solid transparent;font-weight:800;font-size:.72rem;cursor:pointer;transition:var(--t);background:var(--gris2);min-height:36px;}
-.cb.b-NE{color:var(--gris);}.cb.b-NA{color:var(--rouge);}.cb.b-EC{color:#a06e00;}.cb.b-M{color:#1a7d3e;}.cb.b-PM{color:var(--bleu2);}
-.cb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}.cb.b-NA.sel{background:var(--rouge2);border-color:var(--rouge);}
-.cb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.cb.b-M.sel{background:#d4f4e2;border-color:#1a7d3e;}.cb.b-PM.sel{background:var(--bleu3);border-color:var(--bleu2);}
-.cb.b-NE-ABS.sel{background:#fde8e6;border-color:var(--rouge);}.cb.b-NE-IMP.sel{background:var(--violet2);border-color:var(--violet);}
-.cb.b-NE-NON.sel{background:var(--jaune2);border-color:#7a5000;}.cb.b-NE-REF.sel{background:#ffe0cc;border-color:#c0390f;}
+.crit-btns{display:flex;gap:.3rem;flex-wrap:wrap;}
+.cb{padding:.5rem .8rem;border-radius:8px;border:2px solid transparent;font-weight:800;font-size:.8rem;cursor:pointer;transition:var(--t);min-height:44px;min-width:48px;display:flex;align-items:center;justify-content:center;}
+.cb.b-NE{background:var(--gris2);color:var(--gris);}.cb.b-NA{background:#fee;color:var(--rouge);}.cb.b-EC{background:#fffacd;color:#7a5000;}.cb.b-M{background:#e8f8e8;color:#1a7d3e;}.cb.b-PM{background:#e0f0ff;color:var(--bleu2);}
+.cb.b-NE.sel{background:var(--gris);color:#fff;border-color:var(--gris);box-shadow:0 2px 8px rgba(0,0,0,.2);}.cb.b-NA.sel{background:var(--rouge);color:#fff;border-color:var(--rouge);box-shadow:0 2px 8px rgba(231,76,60,.3);}
+.cb.b-EC.sel{background:var(--jaune);color:#fff;border-color:var(--jaune);box-shadow:0 2px 8px rgba(243,156,18,.3);}.cb.b-M.sel{background:var(--vert);color:#fff;border-color:var(--vert);box-shadow:0 2px 8px rgba(39,174,96,.3);}.cb.b-PM.sel{background:var(--bleu2);color:#fff;border-color:var(--bleu2);box-shadow:0 2px 8px rgba(45,90,140,.3);}
+.cb.b-NE-ABS.sel{background:var(--rouge);color:#fff;}.cb.b-NE-IMP.sel{background:var(--violet);color:#fff;}
+.cb.b-NE-NON.sel{background:#7a5000;color:#fff;}.cb.b-NE-REF.sel{background:#c0390f;color:#fff;}
 .ne-dropdown{position:relative;display:inline-block;}
 .ne-menu{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#fff;border-radius:var(--r2);box-shadow:var(--ombre);padding:.4rem;z-index:50;min-width:140px;margin-bottom:.3rem;}
 .ne-menu.open{display:block;}
@@ -189,16 +189,22 @@ body.show-app #screen-app{display:flex;}
 .ne-menu .ne-imp{background:var(--violet2);color:var(--violet);}.ne-menu .ne-imp:hover{background:#e8d5f0;}
 .ne-menu .ne-non{background:var(--jaune2);color:#7a5000;}.ne-menu .ne-non:hover{background:#fdf0c8;}
 .ne-menu .ne-ref{background:#ffe0cc;color:#c0390f;}.ne-menu .ne-ref:hover{background:#ffd0b0;}
-.comp-global{display:flex;align-items:center;gap:.5rem;padding:.6rem;background:var(--gris2);border-radius:var(--r2);margin-top:.4rem;}
+.comp-global{display:flex;align-items:center;gap:.5rem;padding:.6rem;background:var(--gris2);border-radius:var(--r2);margin-top:.4rem;flex-wrap:wrap;}
 .cg-lbl{font-size:.75rem;font-weight:800;color:var(--bleu);flex-shrink:0;}
-.gb-wrap{display:flex;gap:.35rem;}
-.gb{padding:.4rem .75rem;border-radius:var(--r2);border:2px solid transparent;font-weight:800;font-size:.82rem;cursor:pointer;transition:var(--t);background:#fff;min-height:40px;}
-.gb.b-NE{color:var(--gris);}.gb.b-NA{color:var(--rouge);}.gb.b-EC{color:#a06e00;}.gb.b-M{color:#1a7d3e;}.gb.b-PM{color:var(--bleu2);}
-.gb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}.gb.b-NA.sel{background:var(--rouge2);border-color:var(--rouge);}
-.gb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.gb.b-M.sel{background:#d4f4e2;border-color:#1a7d3e;}.gb.b-PM.sel{background:var(--bleu3);border-color:var(--bleu2);}
-.gb.b-NE-ABS{color:var(--rouge);}.gb.b-NE-IMP{color:var(--violet);}.gb.b-NE-NON{color:#7a5000;}.gb.b-NE-REF{color:#c0390f;}
-.gb.b-NE-ABS.sel{background:#fde8e6;border-color:var(--rouge);}.gb.b-NE-IMP.sel{background:var(--violet2);border-color:var(--violet);}
-.gb.b-NE-NON.sel{background:var(--jaune2);border-color:#7a5000;}.gb.b-NE-REF.sel{background:#ffe0cc;border-color:#c0390f;}
+.niv-legend{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:.75rem;padding:.5rem;background:#f8f9fa;border-radius:var(--r2);border:1px dashed var(--gris3);}
+.leg-item{font-size:.65rem;font-weight:700;padding:.25rem .5rem;border-radius:4px;}
+.leg-ne{background:var(--gris2);color:var(--gris);}.leg-na{background:#fee;color:var(--rouge);}.leg-ec{background:#fffacd;color:#7a5000;}.leg-m{background:#e8f8e8;color:#1a7d3e;}.leg-pm{background:#e0f0ff;color:var(--bleu2);}
+.add-crit-btn{margin:.5rem 0;font-size:.75rem!important;}
+.crit-custom{background:var(--teal2);border-radius:var(--r2);padding:.3rem;}
+.crit-custom-tag{font-size:.6rem;color:var(--teal);margin-left:.3rem;}
+.gb-wrap{display:flex;gap:.4rem;flex-wrap:wrap;}
+.gb{padding:.6rem 1rem;border-radius:10px;border:3px solid transparent;font-weight:800;font-size:.9rem;cursor:pointer;transition:var(--t);min-height:50px;min-width:56px;display:flex;align-items:center;justify-content:center;}
+.gb.b-NE{background:var(--gris2);color:var(--gris);}.gb.b-NA{background:#fee;color:var(--rouge);}.gb.b-EC{background:#fffacd;color:#7a5000;}.gb.b-M{background:#e8f8e8;color:#1a7d3e;}.gb.b-PM{background:#e0f0ff;color:var(--bleu2);}
+.gb.b-NE.sel{background:var(--gris);color:#fff;border-color:#555;box-shadow:0 3px 10px rgba(0,0,0,.25);transform:scale(1.05);}.gb.b-NA.sel{background:var(--rouge);color:#fff;border-color:#a02020;box-shadow:0 3px 10px rgba(231,76,60,.4);transform:scale(1.05);}
+.gb.b-EC.sel{background:var(--jaune);color:#fff;border-color:#b07000;box-shadow:0 3px 10px rgba(243,156,18,.4);transform:scale(1.05);}.gb.b-M.sel{background:var(--vert);color:#fff;border-color:#1a7d3e;box-shadow:0 3px 10px rgba(39,174,96,.4);transform:scale(1.05);}.gb.b-PM.sel{background:var(--bleu2);color:#fff;border-color:var(--bleu);box-shadow:0 3px 10px rgba(45,90,140,.4);transform:scale(1.05);}
+.gb.b-NE-ABS{background:#fee;color:var(--rouge);}.gb.b-NE-IMP{background:var(--violet2);color:var(--violet);}.gb.b-NE-NON{background:#fffacd;color:#7a5000;}.gb.b-NE-REF{background:#ffe0cc;color:#c0390f;}
+.gb.b-NE-ABS.sel{background:var(--rouge);color:#fff;transform:scale(1.05);}.gb.b-NE-IMP.sel{background:var(--violet);color:#fff;transform:scale(1.05);}
+.gb.b-NE-NON.sel{background:#7a5000;color:#fff;transform:scale(1.05);}.gb.b-NE-REF.sel{background:#c0390f;color:#fff;transform:scale(1.05);}
 .obs-area{width:100%;padding:.5rem .7rem;border:2px solid var(--gris3);border-radius:var(--r2);font-size:.78rem;resize:vertical;margin-top:.5rem;transition:var(--t);}
 .obs-area:focus{outline:none;border-color:var(--bleu2);}
 
@@ -711,7 +717,7 @@ const CLASSES_DEFAUT=['CAP IFCA 1','CAP IFCA 2','2nde TNE','1ère MFER','Term MF
 
 /* ═══ [B] ÉTAT GLOBAL ═══ */
 let cfg={},appCfg={};
-let students=[],validations={},notes={},pfmpData={},partenaires=[];
+let students=[],validations={},notes={},pfmpData={},partenaires=[],customCriteria={};
 let users=[],classes=[],adminJournal=[];
 let cur=null,curCtx='atelier',curSit='A',curPhase='formatif';
 let online=false,demoMode=false,isAdmin=false,currentUser=null;
@@ -794,15 +800,15 @@ function startAutoBackup(){
   backupInterval=setInterval(async()=>{if(students.length>0){await createBackup(true);console.log('[AutoBackup]',new Date().toISOString());}},5*60*1000);
 }
 async function saveLocalData(){
-  const data={id:'main',students,validations,notes,pfmpData,appCfg,lastSave:new Date().toISOString()};
+  const data={id:'main',students,validations,notes,pfmpData,appCfg,customCriteria,lastSave:new Date().toISOString()};
   if(db){await saveIDB('data',data);}
-  try{localStorage.setItem(SK,JSON.stringify({students,validations,notes,pfmpData,appCfg}));}catch{}
+  try{localStorage.setItem(SK,JSON.stringify({students,validations,notes,pfmpData,appCfg,customCriteria}));}catch{}
   updateStor();
 }
 async function loadLocalData(){
-  if(db){const d=await loadIDB('data','main');if(d){students=d.students||[];validations=d.validations||{};notes=d.notes||{};pfmpData=d.pfmpData||{};appCfg=d.appCfg||{};return true;}}
+  if(db){const d=await loadIDB('data','main');if(d){students=d.students||[];validations=d.validations||{};notes=d.notes||{};pfmpData=d.pfmpData||{};appCfg=d.appCfg||{};customCriteria=d.customCriteria||{};return true;}}
   const d=localStorage.getItem(SK);if(!d)return false;
-  const p=JSON.parse(d);students=p.students||[];validations=p.validations||{};notes=p.notes||{};pfmpData=p.pfmpData||{};appCfg=p.appCfg||{};
+  const p=JSON.parse(d);students=p.students||[];validations=p.validations||{};notes=p.notes||{};pfmpData=p.pfmpData||{};appCfg=p.appCfg||{};customCriteria=p.customCriteria||{};
   return true;
 }
 
@@ -1045,18 +1051,30 @@ function compBlock(comp,ep,ctx){
   const lvBase=lv?.startsWith('NE-')?'ne':lv?.toLowerCase()||'ne';
   const lvcls='lv-'+(lv?.toLowerCase().replace('-','-')||'ne');
   const crits=ep==='EP2'?(CRIT2[comp.code]?.[ctx]||[]):(CRIT3[comp.code]?.[ctx]||[]);
+  // Critères personnalisés ajoutés
+  const customCrits=customCriteria[cur]?.[ep]?.[comp.code]||[];
+  const allCrits=[...crits,...customCrits];
   const obs=getObs(cur,ep,comp.code);
   const locked=notes[cur]?.[ep]?.cloture;
-  const critsHtml=crits.map(cr=>{
+  const critsHtml=allCrits.map(cr=>{
     const cv=getVal(cur,ep,comp.code,cr);
+    const isCustom=customCrits.includes(cr);
     // Ordre: NE, NA, EC, M, PM (gris, rouge, jaune, vert, bleu)
     const btns=['NE','NA','EC','M','PM'].map(n=>`<button class="cb b-${n}${cv===n?' sel':''}" ${locked?'disabled':''} onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
-    return `<div class="crit-item"><span class="crit-nom">${cr}</span><div class="crit-btns">${btns}</div></div>`;
+    return `<div class="crit-item${isCustom?' crit-custom':''}"><span class="crit-nom">${cr}${isCustom?'<span class="crit-custom-tag">✎</span>':''}</span><div class="crit-btns">${btns}</div></div>`;
   }).join('');
   // Ordre: NE, NA, EC, M, PM pour les boutons globaux
   const gbBtns=['NE','NA','EC','M','PM'].map(n=>`<button class="gb b-${n}${lv===n?' sel':''}" ${locked?'disabled':''} onclick="setLv('${comp.code}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
   const lvDisplay=lv||'NE';
-  return `<div class="comp-block">
+  // Légende
+  const legend=`<div class="niv-legend">
+    <span class="leg-item leg-ne">NE = Non Évalué</span>
+    <span class="leg-item leg-na">NA = Non Acquis</span>
+    <span class="leg-item leg-ec">EC = En Cours</span>
+    <span class="leg-item leg-m">M = Maîtrisé</span>
+    <span class="leg-item leg-pm">PM = Parfaitement Maîtrisé</span>
+  </div>`;
+  return `<div class="comp-block" data-comp="${comp.code}">
     <div class="comp-hdr" onclick="toggleComp(this)">
       <span class="comp-code">${comp.code}</span>
       <span class="comp-nom">${comp.nom}</span>
@@ -1067,7 +1085,9 @@ function compBlock(comp,ep,ctx){
     </div>
     <div class="comp-body">
       <div class="comp-full">${comp.full}</div>
+      ${legend}
       ${critsHtml?`<div class="crit-list">${critsHtml}</div>`:''}
+      <button class="btn btn-ghost btn-xs add-crit-btn" onclick="event.stopPropagation();addCustomCrit('${comp.code}','${ep}')" ${locked?'disabled':''}>➕ Ajouter un critère</button>
       <div class="comp-global"><span class="cg-lbl">Niveau global :</span><div class="gb-wrap">${gbBtns}</div></div>
       <textarea class="obs-area" placeholder="Observation sur ${comp.code}..." rows="2" ${locked?'disabled':''} onblur="saveObs('${comp.code}','${ep}',this.value)">${obs}</textarea>
     </div>
@@ -1100,21 +1120,73 @@ async function setCrit(comp,critEnc,niv,ep){
   const currentVal=getVal(cur,ep,comp,crit);
   // Toggle: si même niveau, on efface (remet NE)
   const newNiv=(currentVal===niv)?'NE':niv;
+  
+  // Feedback visuel IMMÉDIAT - mettre à jour le bouton cliqué sans re-render
+  const btns=document.querySelectorAll(`.cb[onclick*="${comp}"][onclick*="${critEnc}"]`);
+  btns.forEach(btn=>{
+    btn.classList.remove('sel');
+    if(btn.textContent.trim()===newNiv||(newNiv.startsWith('NE-')&&btn.textContent.trim()===newNiv))btn.classList.add('sel');
+  });
+  // Aussi update visuellement les boutons de cette ligne
+  const allBtnsInRow=document.querySelectorAll(`.cb[onclick*="${comp}"][onclick*="${critEnc}"]`);
+  allBtnsInRow.forEach(b=>{
+    b.classList.remove('sel');
+    if(b.textContent.trim()===newNiv)b.classList.add('sel');
+  });
+  
+  toast(`${comp} → ${newNiv}`,'ok');
   await pushVal({epreuve:ep,competence:comp,critere:crit,niveau:newNiv,contexte:ep==='EP2'?curCtx:curSit});
-  if(ep==='EP2')renderEP2();else renderEP3();
+  // PAS de re-render complet pour éviter de fermer le bloc
 }
 async function setLv(comp,niv,ep){
   if(notes[cur]?.[ep]?.cloture){toast('Épreuve clôturée','err');return;}
   const currentLv=getLv(cur,ep,comp);
   // Toggle: si même niveau, on efface (remet NE)
   const newNiv=(currentLv===niv)?'NE':niv;
+  
+  // Feedback visuel IMMÉDIAT
+  // 1. Mettre à jour les boutons globaux
+  const gbBtns=document.querySelectorAll(`.gb[onclick*="setLv('${comp}'"]`);
+  gbBtns.forEach(btn=>{
+    btn.classList.remove('sel');
+    if(btn.textContent.trim()===newNiv)btn.classList.add('sel');
+  });
+  // 2. Mettre à jour le badge dans l'en-tête
+  const blocks=document.querySelectorAll('.comp-block');
+  blocks.forEach(block=>{
+    const codeEl=block.querySelector('.comp-code');
+    if(codeEl&&codeEl.textContent===comp){
+      const badge=block.querySelector('.comp-lv');
+      if(badge){
+        badge.textContent=newNiv;
+        badge.className='badge comp-lv lv-'+newNiv.toLowerCase().replace('-','-');
+      }
+    }
+  });
+  
+  toast(`${comp} → ${newNiv}`,'ok');
   await pushVal({epreuve:ep,competence:comp,critere:'',niveau:newNiv,contexte:ep==='EP2'?curCtx:curSit});
-  if(ep==='EP2')renderEP2();else renderEP3();
-  renderDash();
+  renderDash(); // Juste le dashboard, pas EP2/EP3
 }
 async function saveObs(comp,ep,txt){
   if(!txt.trim()||notes[cur]?.[ep]?.cloture)return;
   await pushVal({epreuve:ep,competence:comp,critere:'__obs__',niveau:txt,contexte:''});
+}
+
+function addCustomCrit(comp,ep){
+  const nom=prompt('Nom du nouveau critère :');
+  if(!nom||!nom.trim())return;
+  // Stocker le critère personnalisé
+  if(!customCriteria[cur])customCriteria[cur]={};
+  if(!customCriteria[cur][ep])customCriteria[cur][ep]={};
+  if(!customCriteria[cur][ep][comp])customCriteria[cur][ep][comp]=[];
+  // Éviter les doublons
+  if(customCriteria[cur][ep][comp].includes(nom.trim())){toast('Ce critère existe déjà','err');return;}
+  customCriteria[cur][ep][comp].push(nom.trim());
+  saveLocal();
+  toast(`Critère "${nom.trim()}" ajouté`,'ok');
+  // Re-render juste ce bloc
+  if(ep==='EP2')renderEP2();else renderEP3();
 }
 
 function renderStage(){renderSuivi();}
