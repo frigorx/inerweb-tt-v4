@@ -329,6 +329,7 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importCsv').click()">📥 Import CSV/XLSX</button>
         <input type="file" id="importCsv" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleImportFile(this.files[0])">
         <button class="btn btn-ghost btn-sm" onclick="showQRAll()">📱 QR codes</button>
+        <button class="btn btn-ghost btn-sm" onclick="showScanner()">📷 Scanner</button>
         <button class="btn btn-ghost btn-sm" onclick="syncAll()">🔄 Sync</button>
       </div>
       <div id="elevesList"><div class="empty"><div class="ei">👥</div><p>Aucun élève</p></div></div>
@@ -1142,16 +1143,27 @@ async function importRows(rows){
 function showQR(code){
   const s=students.find(x=>x.code===code)||{nom:'?',prenom:''};
   const base=cfg.baseUrl||'';
+  const baseProf=window.location.href.split('?')[0];
   const ue=`${base}inerweb_eleve.html?eleve=${code}&token=${s.token_eleve||'TOKEN'}`;
   const ut=`${base}inerweb_tuteur.html?eleve=${code}&tuteur=${s.token_tuteur||'TUTEUR'}`;
+  const up=`${baseProf}?key=${cfg.apiKey}&eleve=${code}&mode=ep2`;
   showModal(`📱 QR Codes — ${s.nom} ${s.prenom||''}`,`
   <div class="qr-wrap">
     <div class="qr-item"><div class="qr-lbl">📱 Lien élève</div><div id="qre" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${ue}</div></div>
     <div class="qr-item"><div class="qr-lbl">🏢 Lien tuteur</div><div id="qrt" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${ut}</div></div>
+    <div class="qr-item" style="border-top:2px solid var(--orange)"><div class="qr-lbl" style="color:var(--orange)">⚡ Badge prof (scan rapide → EP2)</div><div id="qrp" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${up}</div></div>
   </div>`,'<button class="btn btn-ghost" onclick="closeModal()">Fermer</button>');
   setTimeout(()=>{
-    try{new QRCode(document.getElementById('qre'),{text:ue,width:130,height:130});new QRCode(document.getElementById('qrt'),{text:ut,width:130,height:130});}
-    catch{document.getElementById('qre').textContent=ue;document.getElementById('qrt').textContent=ut;}
+    try{
+      new QRCode(document.getElementById('qre'),{text:ue,width:130,height:130});
+      new QRCode(document.getElementById('qrt'),{text:ut,width:130,height:130});
+      new QRCode(document.getElementById('qrp'),{text:up,width:130,height:130});
+    }
+    catch{
+      document.getElementById('qre').textContent=ue;
+      document.getElementById('qrt').textContent=ut;
+      document.getElementById('qrp').textContent=up;
+    }
   },100);
 }
 function showQRAll(){
@@ -1462,12 +1474,106 @@ function updateAll(){renderDash();renderEleves();popSelects();updateStor();if(ap
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveLocal();toast('💾 Sauvegardé','ok');}});
 
 /* ═══ [M] INIT ═══ */
-function initApp(){loadLocal();loadCfgToForm();updateAll();syncAll();setPhase('formatif');}
+function initApp(){
+  loadLocal();loadCfgToForm();updateAll();syncAll();setPhase('formatif');
+  // [Phase 3] Deep-link : ?eleve=ELV-001&mode=ep2
+  handleDeepLink();
+}
+
+/* ═══ [N] DEEP-LINK + SCANNER QR ═══ */
+function handleDeepLink(){
+  const p=new URLSearchParams(window.location.search);
+  const eleve=p.get('eleve');
+  const mode=p.get('mode')||'ep2';
+  if(!eleve)return;
+  // Attend que les données soient chargées (sync peut être en cours)
+  const tryNav=()=>{
+    const s=students.find(x=>x.code===eleve);
+    if(s){
+      cur=eleve;
+      const tab=mode==='ep3'?'ep3':mode==='bilan'?'bilan':'ep2';
+      switchTab(tab);
+      toast(`📱 ${s.nom} ${s.prenom||''} — ${tab.toUpperCase()}`,'ok');
+    } else {
+      setTimeout(tryNav,800);
+    }
+  };
+  setTimeout(tryNav,600);
+}
+
+function showScanner(){
+  showModal('📷 Scanner un badge élève',`
+    <div style="text-align:center;margin-bottom:.75rem">
+      <video id="scanVid" style="width:100%;max-width:320px;border-radius:var(--r);background:#000" autoplay playsinline></video>
+      <canvas id="scanCanvas" style="display:none"></canvas>
+    </div>
+    <div id="scanStatus" class="alert al-info" style="text-align:center;font-size:.8rem">Pointez la caméra vers le QR code</div>`,
+    `<button class="btn btn-ghost" onclick="stopScanner();closeModal()">✖ Fermer</button>`
+  );
+  startScanner();
+}
+
+let _scanStream=null,_scanTimer=null;
+
+async function startScanner(){
+  try{
+    _scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const vid=document.getElementById('scanVid');
+    if(!vid){stopScanner();return;}
+    vid.srcObject=_scanStream;
+    await vid.play();
+    _scanTimer=setInterval(()=>scanFrame(),300);
+  }catch(e){
+    const st=document.getElementById('scanStatus');
+    if(st)st.innerHTML='<span style="color:var(--rouge)">⚠️ Caméra non disponible — '+e.message+'</span>';
+  }
+}
+
+function scanFrame(){
+  const vid=document.getElementById('scanVid');
+  const cvs=document.getElementById('scanCanvas');
+  if(!vid||!cvs||vid.readyState<2)return;
+  cvs.width=vid.videoWidth;cvs.height=vid.videoHeight;
+  const ctx=cvs.getContext('2d');
+  ctx.drawImage(vid,0,0);
+  try{
+    const img=ctx.getImageData(0,0,cvs.width,cvs.height);
+    // BarcodeDetector API (Chrome/Edge moderne)
+    if('BarcodeDetector' in window){
+      new BarcodeDetector({formats:['qr_code']}).detect(cvs).then(codes=>{
+        if(codes.length>0)handleQRResult(codes[0].rawValue);
+      }).catch(()=>{});
+    }
+  }catch{}
+}
+
+function handleQRResult(url){
+  stopScanner();closeModal();
+  try{
+    const u=new URL(url);
+    const eleve=u.searchParams.get('eleve');
+    const mode=u.searchParams.get('mode')||'ep2';
+    if(eleve){
+      cur=eleve;
+      const tab=mode==='ep3'?'ep3':mode==='bilan'?'bilan':'ep2';
+      switchTab(tab);
+      const s=students.find(x=>x.code===eleve);
+      toast(`📱 ${s?s.nom+' '+(s.prenom||''):eleve} chargé`,'ok');
+    } else {
+      toast('QR non reconnu','warn');
+    }
+  }catch{toast('QR invalide','err');}
+}
+
+function stopScanner(){
+  if(_scanTimer){clearInterval(_scanTimer);_scanTimer=null;}
+  if(_scanStream){_scanStream.getTracks().forEach(t=>t.stop());_scanStream=null;}
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   if(loadConfig()){startApp();}
   else{
     document.body.classList.add('show-config');
-    const e=document.getElementById;
     document.getElementById('cfgUrl').value='https://script.google.com/macros/s/AKfycbx2s-e-SLPHcSCheFn8bCuWdSY3jIZ1VjNdTJxJsF6CUeZeIA7tQysML_vqPrdLv9ScmA/exec';document.getElementById('cfgKey').value='';
     document.getElementById('cfgNom').value='F. Henninot';
     document.getElementById('cfgBase').value='https://frigorx.github.io/inerweb-tt/';
