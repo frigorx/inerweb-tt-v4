@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide d'évaluation tuteur PFMP | inerWeb TT</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bleu:#1b3a63; --bleu2:#2d5a8c; --bleu3:#e8f0f8;
+  --orange:#ff6b35;
+  --vert:#27ae60; --vert2:#d4f4e2;
+  --rouge:#e74c3c; --rouge2:#fde8e6;
+  --jaune:#f39c12; --jaune2:#fef9e7;
+  --teal:#16a085; --teal2:#d0f0ea;
+  --gris:#6c757d; --gris2:#f0f2f5; --gris3:#dee2e6;
+  --texte:#1a2332;
+  --r:14px; --r2:8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  font-size: 15px;
+  background: linear-gradient(135deg, var(--bleu) 0%, var(--bleu2) 50%, var(--teal) 100%);
+  color: var(--texte);
+  padding: 20px 16px 40px;
+  min-height: 100vh;
+}
+
+.container {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+/* === EN-TÊTE === */
+.header {
+  background: #fff;
+  border-radius: var(--r) var(--r) 0 0;
+  padding: 20px 24px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border-bottom: 3px solid var(--teal);
+}
+.logo-ico { font-size: 2.5rem; }
+.logo-txt h1 {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--bleu);
+  line-height: 1.1;
+}
+.logo-txt h1 span {
+  background: var(--teal);
+  color: #fff;
+  font-size: .7rem;
+  padding: 2px 8px;
+  border-radius: 4px;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+.logo-txt p {
+  font-size: .8rem;
+  color: var(--gris);
+  font-weight: 600;
+}
+
+/* === CARTE PRINCIPALE === */
+.card {
+  background: #fff;
+  border-radius: 0 0 var(--r) var(--r);
+  padding: 28px 24px;
+}
+
+.section-title {
+  font-size: .85rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: var(--bleu2);
+  margin-bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gris3), transparent);
+}
+
+/* === INTRO === */
+.intro-box {
+  background: var(--teal2);
+  border-left: 4px solid var(--teal);
+  border-radius: 0 var(--r2) var(--r2) 0;
+  padding: 16px 18px;
+  margin-bottom: 28px;
+  font-size: .9rem;
+  line-height: 1.7;
+}
+.intro-box strong { color: var(--bleu); }
+
+/* === QU'EST-CE QUE L'ÉVALUATION PAR COMPÉTENCES === */
+.explication-box {
+  background: var(--bleu3);
+  border-radius: var(--r);
+  padding: 20px;
+  margin-bottom: 28px;
+}
+.explication-box h3 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--bleu);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.explication-box p {
+  font-size: .88rem;
+  line-height: 1.7;
+  color: var(--texte);
+  margin-bottom: 10px;
+}
+.explication-box ul {
+  margin-left: 20px;
+  font-size: .85rem;
+  line-height: 1.8;
+}
+.explication-box li { margin-bottom: 4px; }
+
+/* === GRILLE DES NIVEAUX === */
+.niveaux-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 28px;
+}
+
+.niveau-card {
+  border-radius: var(--r);
+  border: 2px solid;
+  overflow: hidden;
+  transition: transform .2s;
+}
+.niveau-card:hover { transform: translateX(4px); }
+
+.niveau-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+}
+.niveau-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  font-weight: 900;
+  color: #fff;
+  flex-shrink: 0;
+}
+.niveau-info { flex: 1; }
+.niveau-label {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.niveau-sublabel {
+  font-size: .75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .5px;
+  opacity: 0.8;
+  margin-top: 2px;
+}
+.niveau-body {
+  padding: 0 18px 16px;
+  font-size: .88rem;
+  line-height: 1.6;
+}
+.niveau-desc { margin-bottom: 10px; }
+.niveau-exemple {
+  background: rgba(255,255,255,.5);
+  border-radius: var(--r2);
+  padding: 10px 12px;
+  font-size: .82rem;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.niveau-exemple-ico { font-size: 1.1rem; flex-shrink: 0; }
+
+/* Couleurs par niveau - ALIGNÉES SUR LE SYSTÈME PROF */
+.n-ne { border-color: var(--gris); background: var(--gris2); }
+.n-ne .niveau-badge { background: var(--gris); }
+.n-ne .niveau-label, .n-ne .niveau-sublabel { color: var(--gris); }
+
+.n-na { border-color: var(--rouge); background: var(--rouge2); }
+.n-na .niveau-badge { background: var(--rouge); }
+.n-na .niveau-label, .n-na .niveau-sublabel { color: #c0392b; }
+
+.n-ec { border-color: var(--jaune); background: var(--jaune2); }
+.n-ec .niveau-badge { background: var(--jaune); }
+.n-ec .niveau-label, .n-ec .niveau-sublabel { color: #7a5000; }
+
+.n-m { border-color: var(--vert); background: var(--vert2); }
+.n-m .niveau-badge { background: var(--vert); }
+.n-m .niveau-label, .n-m .niveau-sublabel { color: #1a7d3e; }
+
+.n-pm { border-color: var(--bleu2); background: var(--bleu3); }
+.n-pm .niveau-badge { background: var(--bleu2); }
+.n-pm .niveau-label, .n-pm .niveau-sublabel { color: var(--bleu); }
+
+/* === BARRE VISUELLE === */
+.resume-section { margin-bottom: 28px; }
+.resume-bar {
+  display: flex;
+  border-radius: var(--r2);
+  overflow: hidden;
+  height: 44px;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+.resume-seg {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  color: #fff;
+  font-size: .85rem;
+  line-height: 1.2;
+}
+.resume-seg small { font-size: .6rem; font-weight: 600; opacity: .9; }
+.resume-seg.s-ne { background: var(--gris); }
+.resume-seg.s-na { background: var(--rouge); }
+.resume-seg.s-ec { background: var(--jaune); color: #5a4000; }
+.resume-seg.s-m { background: var(--vert); }
+.resume-seg.s-pm { background: var(--bleu2); }
+
+.resume-labels {
+  display: flex;
+  font-size: .75rem;
+  color: var(--gris);
+  justify-content: space-between;
+  font-weight: 700;
+}
+
+/* === CONSEILS === */
+.conseils-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+@media(max-width: 550px) { .conseils-grid { grid-template-columns: 1fr; } }
+
+.conseil-item {
+  background: var(--gris2);
+  border-radius: var(--r2);
+  padding: 14px 16px;
+  font-size: .85rem;
+  line-height: 1.5;
+}
+.conseil-icon { font-size: 1.3rem; margin-bottom: 6px; display: block; }
+.conseil-title { font-weight: 800; color: var(--bleu); margin-bottom: 4px; }
+
+/* === RAPPEL NE === */
+.ne-box {
+  background: var(--gris2);
+  border: 2px dashed var(--gris3);
+  border-radius: var(--r2);
+  padding: 14px 18px;
+  font-size: .88rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.ne-icon { font-size: 1.5rem; flex-shrink: 0; }
+
+/* === CONTACT === */
+.contact-box {
+  background: linear-gradient(135deg, var(--bleu), var(--teal));
+  border-radius: var(--r);
+  padding: 18px 20px;
+  color: #fff;
+  text-align: center;
+}
+.contact-box h4 {
+  font-size: .95rem;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.contact-box p {
+  font-size: .82rem;
+  opacity: .9;
+  margin-bottom: 10px;
+}
+.contact-box a {
+  display: inline-block;
+  background: #fff;
+  color: var(--bleu);
+  padding: 8px 16px;
+  border-radius: 20px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: .85rem;
+  transition: transform .2s;
+}
+.contact-box a:hover { transform: scale(1.05); }
+.contact-btn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+}
+
+/* === FOOTER === */
+.footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: .75rem;
+  color: rgba(255,255,255,.7);
+}
+.footer strong { color: var(--orange); }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- EN-TÊTE -->
+<div class="header">
+  <div class="logo-ico">❄️</div>
+  <div class="logo-txt">
+    <h1>inerWeb <span>Tuteur</span></h1>
+    <p>Guide d'évaluation PFMP — CAP IFCA</p>
+  </div>
+</div>
+
+<div class="card">
+
+  <!-- INTRO -->
+  <div class="section-title">🎯 Votre rôle</div>
+  <div class="intro-box">
+    En tant que <strong>tuteur en entreprise</strong>, vous êtes un acteur clé de la formation. Votre évaluation permet à l'enseignant de comprendre comment l'élève se comporte <strong>en situation professionnelle réelle</strong>.<br><br>
+    👉 <strong>Pas de pression</strong> : il n'y a pas de bonne ou mauvaise réponse. Ce qui compte, c'est votre regard de professionnel sur ce que vous avez observé.
+  </div>
+
+  <!-- EXPLICATION ÉVALUATION PAR COMPÉTENCES -->
+  <div class="section-title">📚 Qu'est-ce que l'évaluation par compétences ?</div>
+  <div class="explication-box">
+    <h3>🔧 Une approche concrète, pas scolaire</h3>
+    <p>Contrairement à une note sur 20, l'évaluation par compétences se concentre sur <strong>ce que l'élève sait faire</strong> dans des situations réelles du métier.</p>
+    <p>Chaque compétence correspond à une <strong>tâche professionnelle</strong> : raccorder une ligne frigorifique, faire une mise en service, communiquer avec un client...</p>
+    <p><strong>Les avantages :</strong></p>
+    <ul>
+      <li>✅ Plus juste : on évalue des <strong>gestes concrets</strong>, pas juste des connaissances théoriques</li>
+      <li>✅ Plus formateur : l'élève sait <strong>précisément</strong> ce qu'il doit améliorer</li>
+      <li>✅ Plus valorisant : même un élève en difficulté peut avoir des <strong>points forts</strong> reconnus</li>
+    </ul>
+  </div>
+
+  <!-- GRILLE DES 5 NIVEAUX -->
+  <div class="section-title">📊 Les 5 niveaux d'évaluation</div>
+  <div class="niveaux-list">
+
+    <div class="niveau-card n-ne">
+      <div class="niveau-header">
+        <div class="niveau-badge">NE</div>
+        <div class="niveau-info">
+          <div class="niveau-label">Non Évalué</div>
+          <div class="niveau-sublabel">Pas observé · Gris</div>
+        </div>
+      </div>
+      <div class="niveau-body">
+        <div class="niveau-desc">L'élève n'a <strong>pas eu l'occasion</strong> de réaliser cette tâche pendant son stage. Ce n'est ni positif ni négatif.</div>
+        <div class="niveau-exemple">
+          <span class="niveau-exemple-ico">❄️</span>
+          <span>Votre entreprise fait uniquement du dépannage — l'élève n'a jamais fait d'installation complète de climatisation.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="niveau-card n-na">
+      <div class="niveau-header">
+        <div class="niveau-badge">NA</div>
+        <div class="niveau-info">
+          <div class="niveau-label">Non Acquis</div>
+          <div class="niveau-sublabel">Difficultés importantes · Rouge</div>
+        </div>
+      </div>
+      <div class="niveau-body">
+        <div class="niveau-desc">L'élève a essayé mais <strong>n'y arrive pas encore</strong>. Il fait des erreurs importantes, même avec de l'aide. C'est normal en début de formation !</div>
+        <div class="niveau-exemple">
+          <span class="niveau-exemple-ico">❄️</span>
+          <span>Il ne sait pas encore utiliser la pompe à vide correctement — il oublie des étapes essentielles et vous devez reprendre le travail derrière lui.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="niveau-card n-ec">
+      <div class="niveau-header">
+        <div class="niveau-badge">EC</div>
+        <div class="niveau-info">
+          <div class="niveau-label">En Cours d'acquisition</div>
+          <div class="niveau-sublabel">Progresse · Jaune</div>
+        </div>
+      </div>
+      <div class="niveau-body">
+        <div class="niveau-desc">L'élève <strong>commence à y arriver</strong> mais a encore besoin d'aide ou de rappels réguliers. Il fait des progrès visibles.</div>
+        <div class="niveau-exemple">
+          <span class="niveau-exemple-ico">❄️</span>
+          <span>Il branche les lignes frigorifiques mais vous devez lui rappeler à chaque fois l'ordre de serrage des raccords et le couple de serrage.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="niveau-card n-m">
+      <div class="niveau-header">
+        <div class="niveau-badge">M</div>
+        <div class="niveau-info">
+          <div class="niveau-label">Maîtrisé</div>
+          <div class="niveau-sublabel">Autonome · Vert</div>
+        </div>
+      </div>
+      <div class="niveau-body">
+        <div class="niveau-desc">L'élève <strong>sait faire</strong>. Il travaille de manière autonome avec juste une vérification ponctuelle de votre part. C'est l'objectif attendu en fin de CAP.</div>
+        <div class="niveau-exemple">
+          <span class="niveau-exemple-ico">❄️</span>
+          <span>Il réalise la mise en service d'une PAC air/air seul. Vous vérifiez les pressions finales par sécurité, mais il n'y a rien à corriger.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="niveau-card n-pm">
+      <div class="niveau-header">
+        <div class="niveau-badge">PM</div>
+        <div class="niveau-info">
+          <div class="niveau-label">Parfaitement Maîtrisé</div>
+          <div class="niveau-sublabel">Expert · Bleu</div>
+        </div>
+      </div>
+      <div class="niveau-body">
+        <div class="niveau-desc">L'élève est <strong>excellent</strong> sur cette compétence. Il pourrait former quelqu'un d'autre. Rare et valorisant — ne le mettez que si c'est vraiment mérité !</div>
+        <div class="niveau-exemple">
+          <span class="niveau-exemple-ico">❄️</span>
+          <span>Il gère seul un chantier de A à Z : diagnostic, devis, installation, mise en service, paperasse. Vous lui confieriez un client sans hésiter.</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- BARRE VISUELLE -->
+  <div class="section-title">🎨 Vue d'ensemble</div>
+  <div class="resume-section">
+    <div class="resume-bar">
+      <div class="resume-seg s-ne">NE<small>Non évalué</small></div>
+      <div class="resume-seg s-na">NA<small>Non acquis</small></div>
+      <div class="resume-seg s-ec">EC<small>En cours</small></div>
+      <div class="resume-seg s-m">M<small>Maîtrisé</small></div>
+      <div class="resume-seg s-pm">PM<small>Parfait</small></div>
+    </div>
+    <div class="resume-labels">
+      <span>← Pas encore</span>
+      <span>Objectif CAP →</span>
+      <span>Excellence →</span>
+    </div>
+  </div>
+
+  <!-- CONSEILS -->
+  <div class="section-title">💡 Conseils pratiques</div>
+  <div class="conseils-grid">
+    <div class="conseil-item">
+      <span class="conseil-icon">⏱️</span>
+      <div class="conseil-title">5 minutes suffisent</div>
+      Ne réfléchissez pas trop. Votre première impression est souvent la bonne. Évaluez "à chaud".
+    </div>
+    <div class="conseil-item">
+      <span class="conseil-icon">👁️</span>
+      <div class="conseil-title">Ce que vous avez VU</div>
+      Évaluez uniquement ce que vous avez observé sur le terrain. Pas ce qu'il "aurait pu" faire.
+    </div>
+    <div class="conseil-item">
+      <span class="conseil-icon">📈</span>
+      <div class="conseil-title">C'est progressif</div>
+      Un "EC" ou même "NA" en PFMP 1 est <strong>normal</strong>. L'important c'est la progression d'un stage à l'autre.
+    </div>
+    <div class="conseil-item">
+      <span class="conseil-icon">💬</span>
+      <div class="conseil-title">Les commentaires comptent</div>
+      Un petit mot libre ("ponctuel", "curieux", "à recadrer") nous aide énormément. N'hésitez pas !
+    </div>
+  </div>
+
+  <!-- RAPPEL NE -->
+  <div class="ne-box">
+    <div class="ne-icon">❓</div>
+    <div>
+      <strong>Dans le doute → NE (Non Évalué)</strong><br>
+      Si vous n'avez pas vraiment observé la compétence, choisissez "NE". C'est toujours mieux qu'une note au hasard. L'enseignant en tiendra compte.
+    </div>
+  </div>
+
+  <!-- CONTACT -->
+  <div class="contact-box">
+    <h4>📞 Une question ?</h4>
+    <p>Contactez l'enseignant référent de votre stagiaire :</p>
+    <div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:12px;">
+      <a href="tel:__TEL__" class="contact-btn">📱 __TEL__</a>
+      <a href="mailto:__EMAIL__" class="contact-btn">✉️ __EMAIL__</a>
+    </div>
+    <p style="font-size:.72rem;opacity:.7;margin-top:10px;">Établissement : __ETABLISSEMENT__</p>
+  </div>
+
+</div>
+
+<div class="footer">
+  <strong>inerWeb TT</strong> · LP Privé Jacques Raynaud · Campus Équatio, Marseille<br>
+  CAP Installateur en Froid et Conditionnement d'Air
+</div>
+
+</div>
+
+<script>
+// Personnalisation via paramètres URL
+document.addEventListener('DOMContentLoaded', () => {
+  const params = new URLSearchParams(window.location.search);
+  const tel = params.get('tel') || '06 XX XX XX XX';
+  const email = params.get('email') || 'contact@etablissement.fr';
+  const etab = params.get('etab') || 'LP Privé Jacques Raynaud';
+  
+  // Remplacer les placeholders
+  document.body.innerHTML = document.body.innerHTML
+    .replace(/__TEL__/g, tel)
+    .replace(/__EMAIL__/g, email)
+    .replace(/__ETABLISSEMENT__/g, etab);
+});
+</script>
+
+</body>
+</html>

@@ -425,7 +425,10 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
       <div class="stage-panel" id="sp-tuteurs">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;">
           <span style="font-weight:800;color:var(--bleu);font-size:.9rem">🏢 Évaluations reçues des tuteurs</span>
-          <button class="btn btn-ghost btn-sm" onclick="loadTuteurEvals()">🔄 Actualiser</button>
+          <div style="display:flex;gap:.4rem;">
+            <button class="btn btn-teal btn-sm" onclick="showGuideTuteur()">📚 Guide tuteur</button>
+            <button class="btn btn-ghost btn-sm" onclick="loadTuteurEvals()">🔄 Actualiser</button>
+          </div>
         </div>
         <div class="fr" style="margin-bottom:.75rem">
           <select id="selTuteurEleve" onchange="afficherEvalTuteur(this.value)" style="padding:.5rem .75rem;border:2px solid var(--gris3);border-radius:var(--r2);font-weight:700;font-size:.85rem;">
@@ -532,7 +535,14 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
         <div class="fr" style="margin-bottom:.6rem;"><label>Établissement</label><input id="cEtab" placeholder="Lycée Pro. Privé Jacques Raynaud"></div>
         <div class="grid2" style="margin-bottom:.6rem;"><div class="fr"><label>Ville</label><input id="cVille" placeholder="Marseille"></div><div class="fr"><label>Académie</label><input id="cAcad" placeholder="Aix-Marseille"></div></div>
         <div class="grid2" style="margin-bottom:.6rem;"><div class="fr"><label>Session</label><input id="cSession" type="number" value="2026"></div><div class="fr"><label>Évaluateur principal</label><input id="cEval" placeholder="F. Henninot"></div></div>
-        <div class="fr" style="margin-bottom:.75rem;"><label>Évaluateur collègue</label><input id="cCollegue" placeholder="J. Martin"></div>
+        <div class="fr" style="margin-bottom:.6rem;"><label>Évaluateur collègue</label><input id="cCollegue" placeholder="J. Martin"></div>
+        <div style="border-top:1px solid var(--gris3);padding-top:.75rem;margin-top:.5rem;">
+          <div style="font-size:.78rem;font-weight:700;color:var(--teal);margin-bottom:.5rem;">📞 Contact pour les tuteurs</div>
+          <div class="grid2" style="margin-bottom:.6rem;">
+            <div class="fr"><label>Téléphone</label><input id="cTel" type="tel" placeholder="06 12 34 56 78"></div>
+            <div class="fr"><label>Email</label><input id="cEmail" type="email" placeholder="prof@etablissement.fr"></div>
+          </div>
+        </div>
         <button class="btn btn-primary" onclick="saveAppConfig()">💾 Enregistrer</button>
       </div>
       <div class="card">
@@ -1224,6 +1234,51 @@ function viewJournal(code){
     :'<div class="alert al-info">Aucune entrée de journal</div>';
   showModal(`📓 Journal — ${s.nom} ${s.prenom||''}`,html,'<button class="btn btn-ghost" onclick="closeModal()">Fermer</button>');
 }
+function showGuideTuteur(){
+  const tel=appCfg.telContact||'Non configuré';
+  const email=appCfg.emailContact||'Non configuré';
+  const etab=appCfg.etablissement||'Établissement';
+  const eval1=appCfg.evaluateur||'Enseignant';
+  showModal('📚 Guide d\'évaluation tuteur',`
+    <div style="text-align:center;margin-bottom:1rem">
+      <div style="font-size:2rem">❄️</div>
+      <div style="font-size:1.1rem;font-weight:800;color:var(--bleu)">Guide d'évaluation PFMP</div>
+      <div style="font-size:.8rem;color:var(--gris)">CAP Installateur en Froid et Conditionnement d'Air</div>
+    </div>
+    <div class="alert al-info" style="margin-bottom:1rem">
+      <strong>📊 Les 5 niveaux d'évaluation :</strong><br>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.5rem">
+        <span style="padding:.3rem .6rem;border-radius:6px;font-weight:700;font-size:.75rem;background:var(--gris2);color:var(--gris)">NE - Non Évalué</span>
+        <span style="padding:.3rem .6rem;border-radius:6px;font-weight:700;font-size:.75rem;background:var(--rouge2);color:var(--rouge)">NA - Non Acquis</span>
+        <span style="padding:.3rem .6rem;border-radius:6px;font-weight:700;font-size:.75rem;background:var(--jaune2);color:#7a5000">EC - En Cours</span>
+        <span style="padding:.3rem .6rem;border-radius:6px;font-weight:700;font-size:.75rem;background:var(--vert2);color:#1a7d3e">M - Maîtrisé</span>
+        <span style="padding:.3rem .6rem;border-radius:6px;font-weight:700;font-size:.75rem;background:var(--bleu3);color:var(--bleu)">PM - Parfait</span>
+      </div>
+    </div>
+    <div style="background:var(--teal2);border-radius:var(--r2);padding:1rem;margin-bottom:1rem">
+      <div style="font-weight:800;color:var(--teal);margin-bottom:.5rem">📞 Contact enseignant</div>
+      <div style="font-size:.9rem"><strong>${eval1}</strong> — ${etab}</div>
+      <div style="display:flex;gap:.75rem;margin-top:.5rem;flex-wrap:wrap">
+        <a href="tel:${tel}" style="color:var(--bleu);font-weight:700;text-decoration:none">📱 ${tel}</a>
+        <a href="mailto:${email}" style="color:var(--bleu);font-weight:700;text-decoration:none">✉️ ${email}</a>
+      </div>
+    </div>
+    <p style="font-size:.8rem;color:var(--gris);text-align:center">
+      ${!appCfg.telContact&&!appCfg.emailContact?'⚠️ <strong>Configurez vos coordonnées</strong> dans Config > Contact tuteurs':'Vous pouvez télécharger le guide complet pour l\'imprimer ou l\'envoyer aux tuteurs.'}
+    </p>
+  `,`
+    <button class="btn btn-teal" onclick="downloadGuideTuteur()">📥 Télécharger PDF</button>
+    <button class="btn btn-ghost" onclick="closeModal()">Fermer</button>
+  `);
+}
+function downloadGuideTuteur(){
+  // Ouvre le guide dans un nouvel onglet (à personnaliser avec les infos)
+  const tel=encodeURIComponent(appCfg.telContact||'');
+  const email=encodeURIComponent(appCfg.emailContact||'');
+  const etab=encodeURIComponent(appCfg.etablissement||'');
+  window.open(`aide_tuteur.html?tel=${tel}&email=${email}&etab=${etab}`,'_blank');
+  toast('Guide ouvert — utilisez Ctrl+P pour imprimer en PDF','inf');
+}
 function renderParts(){
   const c=document.getElementById('partList');
   if(!partenaires.length){c.innerHTML='<div class="empty"><div class="ei">🏢</div><p>Aucun partenaire</p></div>';return;}
@@ -1842,6 +1897,8 @@ function saveAppConfig(){
   appCfg.session=parseInt(document.getElementById('cSession').value)||2026;
   appCfg.evaluateur=document.getElementById('cEval').value.trim();
   appCfg.collegue=document.getElementById('cCollegue').value.trim();
+  appCfg.telContact=document.getElementById('cTel').value.trim();
+  appCfg.emailContact=document.getElementById('cEmail').value.trim();
   appCfg.pctPM=parseInt(document.getElementById('cPM').value)||100;
   appCfg.pctM=parseInt(document.getElementById('cM').value)||70;
   appCfg.pctEC=parseInt(document.getElementById('cEC').value)||35;
@@ -1854,6 +1911,7 @@ function loadCfgToForm(){
   const f=(id,v)=>{const e=document.getElementById(id);if(e&&v)e.value=v;};
   f('cEtab',appCfg.etablissement);f('cVille',appCfg.ville);f('cAcad',appCfg.academie);
   f('cSession',appCfg.session);f('cEval',appCfg.evaluateur);f('cCollegue',appCfg.collegue);
+  f('cTel',appCfg.telContact);f('cEmail',appCfg.emailContact);
   f('cPM',appCfg.pctPM);f('cM',appCfg.pctM);f('cEC',appCfg.pctEC);
 }
 function toggleDemoMode(){
