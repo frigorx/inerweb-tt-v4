@@ -116,6 +116,8 @@ body.show-app #screen-app{display:flex;}
 .b-jaune{background:var(--jaune2);color:var(--jaune);}.b-gris{background:var(--gris2);color:var(--gris);}
 .lv-pm{background:#d4f4e2;color:#1a7d3e;}.lv-m{background:var(--bleu3);color:var(--bleu2);}
 .lv-ec{background:var(--jaune2);color:#a06e00;}.lv-ne{background:var(--gris2);color:var(--gris);}
+.lv-ne-abs{background:#fde8e6;color:var(--rouge);}.lv-ne-imp{background:var(--violet2);color:var(--violet);}
+.lv-ne-non{background:var(--jaune2);color:#7a5000;}.lv-ne-ref{background:#ffe0cc;color:#c0390f;}
 .alert{padding:.7rem .9rem;border-radius:var(--r2);font-size:.8rem;margin-bottom:.5rem;}
 .al-info{background:var(--bleu3);color:var(--bleu2);border-left:3px solid var(--bleu2);}
 .al-warn{background:var(--jaune2);color:#7a5000;border-left:3px solid var(--jaune);}
@@ -176,6 +178,17 @@ body.show-app #screen-app{display:flex;}
 .cb.b-PM{color:#1a7d3e;}.cb.b-M{color:var(--bleu2);}.cb.b-EC{color:#a06e00;}.cb.b-NE{color:var(--gris);}
 .cb.b-PM.sel{background:#d4f4e2;border-color:#1a7d3e;}.cb.b-M.sel{background:var(--bleu3);border-color:var(--bleu2);}
 .cb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.cb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}
+.cb.b-NE-ABS.sel{background:#fde8e6;border-color:var(--rouge);}.cb.b-NE-IMP.sel{background:var(--violet2);border-color:var(--violet);}
+.cb.b-NE-NON.sel{background:var(--jaune2);border-color:#7a5000;}.cb.b-NE-REF.sel{background:#ffe0cc;border-color:#c0390f;}
+.ne-dropdown{position:relative;display:inline-block;}
+.ne-menu{display:none;position:absolute;bottom:100%;left:50%;transform:translateX(-50%);background:#fff;border-radius:var(--r2);box-shadow:var(--ombre);padding:.4rem;z-index:50;min-width:140px;margin-bottom:.3rem;}
+.ne-menu.open{display:block;}
+.ne-menu button{display:block;width:100%;padding:.45rem .6rem;margin-bottom:.25rem;border:none;border-radius:6px;font-size:.72rem;font-weight:700;cursor:pointer;text-align:left;transition:var(--t);}
+.ne-menu button:last-child{margin-bottom:0;}
+.ne-menu .ne-abs{background:#fde8e6;color:var(--rouge);}.ne-menu .ne-abs:hover{background:#fbd0cc;}
+.ne-menu .ne-imp{background:var(--violet2);color:var(--violet);}.ne-menu .ne-imp:hover{background:#e8d5f0;}
+.ne-menu .ne-non{background:var(--jaune2);color:#7a5000;}.ne-menu .ne-non:hover{background:#fdf0c8;}
+.ne-menu .ne-ref{background:#ffe0cc;color:#c0390f;}.ne-menu .ne-ref:hover{background:#ffd0b0;}
 .comp-global{display:flex;align-items:center;gap:.5rem;padding:.6rem;background:var(--gris2);border-radius:var(--r2);margin-top:.4rem;}
 .cg-lbl{font-size:.75rem;font-weight:800;color:var(--bleu);flex-shrink:0;}
 .gb-wrap{display:flex;gap:.35rem;}
@@ -183,6 +196,9 @@ body.show-app #screen-app{display:flex;}
 .gb.b-PM{color:#1a7d3e;}.gb.b-M{color:var(--bleu2);}.gb.b-EC{color:#a06e00;}.gb.b-NE{color:var(--gris);}
 .gb.b-PM.sel{background:#d4f4e2;border-color:#1a7d3e;}.gb.b-M.sel{background:var(--bleu3);border-color:var(--bleu2);}
 .gb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.gb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}
+.gb.b-NE-ABS{color:var(--rouge);}.gb.b-NE-IMP{color:var(--violet);}.gb.b-NE-NON{color:#7a5000;}.gb.b-NE-REF{color:#c0390f;}
+.gb.b-NE-ABS.sel{background:#fde8e6;border-color:var(--rouge);}.gb.b-NE-IMP.sel{background:var(--violet2);border-color:var(--violet);}
+.gb.b-NE-NON.sel{background:var(--jaune2);border-color:#7a5000;}.gb.b-NE-REF.sel{background:#ffe0cc;border-color:#c0390f;}
 .obs-area{width:100%;padding:.5rem .7rem;border:2px solid var(--gris3);border-radius:var(--r2);font-size:.78rem;resize:vertical;margin-top:.5rem;transition:var(--t);}
 .obs-area:focus{outline:none;border-color:var(--bleu2);}
 
@@ -498,6 +514,14 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
         <button class="btn btn-rouge btn-sm" style="margin-top:.5rem" onclick="confirmPurge()">🗑️ Purger données locales</button>
       </div>
       <div class="card"><div class="card-title">📖 Journal des actions</div><div id="journalGlobal" style="max-height:300px;overflow-y:auto;"></div></div>
+      <div class="card">
+        <div class="card-title">💾 Historique des backups <span style="font-weight:400;font-size:.7rem;color:var(--gris)">(auto toutes les 5 min)</span></div>
+        <div style="display:flex;gap:.4rem;margin-bottom:.75rem;">
+          <button class="btn btn-primary btn-sm" onclick="createBackup(false)">💾 Backup maintenant</button>
+          <button class="btn btn-ghost btn-sm" onclick="renderBackupList()">🔄 Actualiser</button>
+        </div>
+        <div id="backupList" style="max-height:250px;overflow-y:auto;"><div class="alert al-info">Chargement...</div></div>
+      </div>
     </div></div>
 
     <!-- CONFIG -->
@@ -609,8 +633,10 @@ const SIT_INFO={
 };
 const COEF_OBL=1.2;
 const NV=['PM','M','EC','NE'];
-const NV_PCT={PM:100,M:70,EC:35,NE:0};
-const NV_LBL={PM:'Pleinement Maîtrisé',M:'Maîtrisé',EC:'En Cours',NE:'Non Évalué'};
+const NE_TYPES=['NE-ABS','NE-IMP','NE-NON','NE-REF'];
+const NV_PCT={PM:100,M:70,EC:35,NE:0,'NE-ABS':0,'NE-IMP':0,'NE-NON':0,'NE-REF':0};
+const NV_LBL={PM:'Pleinement Maîtrisé',M:'Maîtrisé',EC:'En Cours',NE:'Non Évalué','NE-ABS':'Absent','NE-IMP':'Impossible','NE-NON':'Non présenté','NE-REF':'Refus élève'};
+const NE_MOTIFS={'NE-ABS':'Élève absent lors de l\'évaluation','NE-IMP':'Conditions ne permettant pas l\'évaluation','NE-NON':'Compétence non travaillée','NE-REF':'Refus de l\'élève de réaliser la tâche'};
 
 /* ═══ [B] ÉTAT GLOBAL ═══ */
 let cfg={},appCfg={};
@@ -618,6 +644,95 @@ let students=[],validations={},notes={},pfmpData={},partenaires=[];
 let cur=null,curCtx='atelier',curSit='A',curPhase='formatif';
 let online=false,demoMode=false;
 const SK='inerweb-tt-prof-v4',SCFG='inerweb-tt-cfg',SPART='inerweb-tt-parts';
+const DB_NAME='inerwebtt-db',DB_VERSION=1;
+let db=null,backupInterval=null;
+
+/* ═══ [B2] INDEXEDDB MODULE ═══ */
+async function initDB(){
+  return new Promise((resolve,reject)=>{
+    const req=indexedDB.open(DB_NAME,DB_VERSION);
+    req.onerror=()=>{console.warn('IndexedDB non disponible, fallback localStorage');resolve(null);};
+    req.onsuccess=(e)=>{db=e.target.result;resolve(db);};
+    req.onupgradeneeded=(e)=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('data'))d.createObjectStore('data',{keyPath:'id'});
+      if(!d.objectStoreNames.contains('backups')){const bs=d.createObjectStore('backups',{keyPath:'id',autoIncrement:true});bs.createIndex('timestamp','timestamp',{unique:false});}
+      if(!d.objectStoreNames.contains('config'))d.createObjectStore('config',{keyPath:'id'});
+    };
+  });
+}
+async function saveIDB(store,data){
+  if(!db)return false;
+  return new Promise((resolve)=>{
+    try{const tx=db.transaction(store,'readwrite');tx.objectStore(store).put(data);tx.oncomplete=()=>resolve(true);tx.onerror=()=>resolve(false);}
+    catch{resolve(false);}
+  });
+}
+async function loadIDB(store,key){
+  if(!db)return null;
+  return new Promise((resolve)=>{
+    try{const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).get(key);req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null);}
+    catch{resolve(null);}
+  });
+}
+async function getAllIDB(store){
+  if(!db)return[];
+  return new Promise((resolve)=>{
+    try{const tx=db.transaction(store,'readonly');const req=tx.objectStore(store).getAll();req.onsuccess=()=>resolve(req.result||[]);req.onerror=()=>resolve([]);}
+    catch{resolve([]);}
+  });
+}
+async function deleteIDB(store,key){
+  if(!db)return false;
+  return new Promise((resolve)=>{
+    try{const tx=db.transaction(store,'readwrite');tx.objectStore(store).delete(key);tx.oncomplete=()=>resolve(true);tx.onerror=()=>resolve(false);}
+    catch{resolve(false);}
+  });
+}
+async function createBackup(auto=false){
+  const backup={id:Date.now(),timestamp:new Date().toISOString(),auto,students,validations,notes,pfmpData,appCfg,version:'TT-4.1'};
+  if(db){await saveIDB('backups',backup);await pruneBackups();}
+  else{const bk=JSON.parse(localStorage.getItem('inerweb-backups')||'[]');bk.push(backup);if(bk.length>20)bk.shift();localStorage.setItem('inerweb-backups',JSON.stringify(bk));}
+  if(!auto)toast('Backup créé','ok');
+  return backup;
+}
+async function pruneBackups(){
+  const all=await getAllIDB('backups');
+  if(all.length>30){all.sort((a,b)=>a.timestamp.localeCompare(b.timestamp));const toDel=all.slice(0,all.length-30);for(const b of toDel)await deleteIDB('backups',b.id);}
+}
+async function getBackups(){
+  if(db){const all=await getAllIDB('backups');return all.sort((a,b)=>b.timestamp.localeCompare(a.timestamp));}
+  return JSON.parse(localStorage.getItem('inerweb-backups')||'[]').reverse();
+}
+async function restoreBackup(id){
+  let bk=null;
+  if(db)bk=await loadIDB('backups',id);
+  else{const all=JSON.parse(localStorage.getItem('inerweb-backups')||'[]');bk=all.find(x=>x.id===id);}
+  if(!bk){toast('Backup introuvable','err');return;}
+  students=bk.students||[];validations=bk.validations||{};notes=bk.notes||{};pfmpData=bk.pfmpData||{};appCfg=bk.appCfg||{};
+  await saveLocalData();updateAll();toast('Backup restauré','ok');
+}
+async function deleteBackup(id){
+  if(db)await deleteIDB('backups',id);
+  else{let all=JSON.parse(localStorage.getItem('inerweb-backups')||'[]');all=all.filter(x=>x.id!==id);localStorage.setItem('inerweb-backups',JSON.stringify(all));}
+  renderBackupList();toast('Backup supprimé','inf');
+}
+function startAutoBackup(){
+  if(backupInterval)clearInterval(backupInterval);
+  backupInterval=setInterval(async()=>{if(students.length>0){await createBackup(true);console.log('[AutoBackup]',new Date().toISOString());}},5*60*1000);
+}
+async function saveLocalData(){
+  const data={id:'main',students,validations,notes,pfmpData,appCfg,lastSave:new Date().toISOString()};
+  if(db){await saveIDB('data',data);}
+  try{localStorage.setItem(SK,JSON.stringify({students,validations,notes,pfmpData,appCfg}));}catch{}
+  updateStor();
+}
+async function loadLocalData(){
+  if(db){const d=await loadIDB('data','main');if(d){students=d.students||[];validations=d.validations||{};notes=d.notes||{};pfmpData=d.pfmpData||{};appCfg=d.appCfg||{};return true;}}
+  const d=localStorage.getItem(SK);if(!d)return false;
+  const p=JSON.parse(d);students=p.students||[];validations=p.validations||{};notes=p.notes||{};pfmpData=p.pfmpData||{};appCfg=p.appCfg||{};
+  return true;
+}
 
 /* ═══ [C] CORE ═══ */
 function cleanUrl(raw){
@@ -670,16 +785,10 @@ async function apiCall(params){
   return d;
 }
 function saveLocal(){
-  try{localStorage.setItem(SK,JSON.stringify({students,validations,notes,pfmpData,appCfg}));updateStor();}
-  catch(e){toast('Stockage local plein','err');}
+  saveLocalData().catch(()=>toast('Erreur sauvegarde','err'));
 }
 function loadLocal(){
-  const d=localStorage.getItem(SK);
-  if(!d)return;
-  const p=JSON.parse(d);
-  students=p.students||[]; validations=p.validations||{}; notes=p.notes||{};
-  pfmpData=p.pfmpData||{}; appCfg=p.appCfg||{};
-  partenaires=JSON.parse(localStorage.getItem(SPART)||'[]');
+  loadLocalData().then(()=>{partenaires=JSON.parse(localStorage.getItem(SPART)||'[]');}).catch(()=>{});
 }
 async function syncAll(){
   if(!cfg.apiUrl){setSyncState('error');return;}
@@ -732,7 +841,7 @@ function switchTab(tab){
   if(tab==='bilan'){popSelects();if(cur)renderBilan();}
   if(tab==='rapport'){popSelectsRapport();if(cur)renderRapport();}
   if(tab==='stage')renderStage();
-  if(tab==='export')renderJournal();
+  if(tab==='export'){renderJournal();renderBackupList();}
   if(tab==='eleves')renderEleves();
 }
 function selectStudent(code,ctx){
@@ -852,33 +961,43 @@ function renderEP3(){
 }
 function compBlock(comp,ep,ctx){
   const lv=getLv(cur,ep,comp.code);
-  const lvcls='lv-'+(lv||'ne').toLowerCase();
+  const lvBase=lv?.startsWith('NE-')?'ne':lv?.toLowerCase()||'ne';
+  const lvcls='lv-'+(lv?.toLowerCase().replace('-','-')||'ne');
   const crits=ep==='EP2'?(CRIT2[comp.code]?.[ctx]||[]):(CRIT3[comp.code]?.[ctx]||[]);
   const obs=getObs(cur,ep,comp.code);
   const locked=notes[cur]?.[ep]?.cloture;
   const critsHtml=crits.map(cr=>{
     const cv=getVal(cur,ep,comp.code,cr);
-    const btns=NV.map(n=>`<button class="cb b-${n}${cv===n?' sel':''}" ${locked?'disabled':''} onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
-    return `<div class="crit-item"><span class="crit-nom">${cr}</span><div class="crit-btns">${btns}</div></div>`;
+    const cvBase=cv?.startsWith('NE-')?'NE':cv;
+    const btns=['PM','M','EC'].map(n=>`<button class="cb b-${n}${cv===n?' sel':''}" ${locked?'disabled':''} onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
+    const neMenu=`<div class="ne-dropdown"><button class="cb b-NE${cv?.startsWith('NE')?' sel':''}" ${locked?'disabled':''} onclick="toggleNEMenu(this,'crit','${comp.code}','${encodeURIComponent(cr)}','${ep}')" title="Non Évalué">NE${cv?.startsWith('NE-')?' ▾':''}</button><div class="ne-menu" id="nem-c-${comp.code}-${encodeURIComponent(cr)}"><button class="ne-abs" onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','NE-ABS','${ep}')">🚫 Absent</button><button class="ne-imp" onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','NE-IMP','${ep}')">⚙️ Impossible</button><button class="ne-non" onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','NE-NON','${ep}')">📋 Non présenté</button><button class="ne-ref" onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','NE-REF','${ep}')">✋ Refus élève</button></div></div>`;
+    return `<div class="crit-item"><span class="crit-nom">${cr}</span><div class="crit-btns">${btns}${neMenu}</div></div>`;
   }).join('');
-  const gbBtns=NV.map(n=>`<button class="gb b-${n}${lv===n?' sel':''}" ${locked?'disabled':''} onclick="setLv('${comp.code}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
+  const gbBtns=['PM','M','EC'].map(n=>`<button class="gb b-${n}${lv===n?' sel':''}" ${locked?'disabled':''} onclick="setLv('${comp.code}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
+  const neMenuGlob=`<div class="ne-dropdown"><button class="gb b-NE${lv?.startsWith('NE')?' sel':''}" ${locked?'disabled':''} onclick="toggleNEMenu(this,'glob','${comp.code}','','${ep}')" title="Non Évalué">NE${lv?.startsWith('NE-')?' ▾':''}</button><div class="ne-menu" id="nem-g-${comp.code}"><button class="ne-abs" onclick="setLv('${comp.code}','NE-ABS','${ep}')">🚫 Absent</button><button class="ne-imp" onclick="setLv('${comp.code}','NE-IMP','${ep}')">⚙️ Impossible</button><button class="ne-non" onclick="setLv('${comp.code}','NE-NON','${ep}')">📋 Non présenté</button><button class="ne-ref" onclick="setLv('${comp.code}','NE-REF','${ep}')">✋ Refus élève</button></div></div>`;
+  const lvDisplay=lv?.startsWith('NE-')?`${lv.replace('NE-','NE: ')}`:lv||'NE';
   return `<div class="comp-block">
     <div class="comp-hdr" onclick="toggleComp(this)">
       <span class="comp-code">${comp.code}</span>
       <span class="comp-nom">${comp.nom}</span>
       ${comp.obl?'<span class="comp-oblig">✱</span>':''}
-      <span class="badge ${lvcls} comp-lv">${lv||'NE'}</span>
+      <span class="badge ${lvcls} comp-lv">${lvDisplay}</span>
       ${locked?'<span class="badge b-rouge">🔒</span>':''}
       <span class="comp-arrow">▼</span>
     </div>
     <div class="comp-body">
       <div class="comp-full">${comp.full}</div>
       ${critsHtml?`<div class="crit-list">${critsHtml}</div>`:''}
-      <div class="comp-global"><span class="cg-lbl">Niveau global :</span><div class="gb-wrap">${gbBtns}</div></div>
+      <div class="comp-global"><span class="cg-lbl">Niveau global :</span><div class="gb-wrap">${gbBtns}${neMenuGlob}</div></div>
       <textarea class="obs-area" placeholder="Observation sur ${comp.code}..." rows="2" ${locked?'disabled':''} onblur="saveObs('${comp.code}','${ep}',this.value)">${obs}</textarea>
     </div>
   </div>`;
 }
+function toggleNEMenu(btn,type,comp,crit,ep){
+  document.querySelectorAll('.ne-menu.open').forEach(m=>{if(m!==btn.nextElementSibling)m.classList.remove('open');});
+  btn.nextElementSibling.classList.toggle('open');
+}
+document.addEventListener('click',(e)=>{if(!e.target.closest('.ne-dropdown'))document.querySelectorAll('.ne-menu.open').forEach(m=>m.classList.remove('open'));});
 function toggleComp(h){const b=h.nextElementSibling;b.classList.toggle('open');h.classList.toggle('open');}
 function getVal(code,ep,comp,crit){
   const v=(validations[code]||[]).filter(x=>x.epreuve===ep&&x.competence===comp&&x.critere===crit);
@@ -1249,8 +1368,10 @@ function renderBilan(){
 }
 function bilanTable(det){
   const rows=det.map(d=>{
-    const cls={PM:'color:var(--vert)',M:'color:var(--bleu2)',EC:'color:var(--jaune)',NE:'color:var(--gris)'}[d.lv]||'';
-    return `<tr><td><strong>${d.code}</strong></td><td>${d.nom}${d.obl?' <span style="color:var(--orange);font-size:.6rem">✱</span>':''}</td><td style="${cls};font-weight:800">${d.lv}</td><td>${d.pts}/${d.max}</td></tr>`;
+    const lvBase=d.lv?.startsWith('NE-')?'NE':d.lv;
+    const cls={PM:'color:var(--vert)',M:'color:var(--bleu2)',EC:'color:var(--jaune)',NE:'color:var(--gris)','NE-ABS':'color:var(--rouge)','NE-IMP':'color:var(--violet)','NE-NON':'color:#7a5000','NE-REF':'color:#c0390f'}[d.lv]||'color:var(--gris)';
+    const lvDisplay=d.lv?.startsWith('NE-')?d.lv:d.lv;
+    return `<tr><td><strong>${d.code}</strong></td><td>${d.nom}${d.obl?' <span style="color:var(--orange);font-size:.6rem">✱</span>':''}</td><td style="${cls};font-weight:800">${lvDisplay}</td><td>${d.pts}/${d.max}</td></tr>`;
   }).join('');
   return `<table class="bilan-table"><thead><tr><th>Code</th><th>Compétence</th><th>Niveau</th><th>Pts</th></tr></thead><tbody>${rows}</tbody></table>`;
 }
@@ -1603,6 +1724,27 @@ function renderJournal(){
   all.sort((a,b)=>String(b.timestamp||'').localeCompare(String(a.timestamp||'')));
   c.innerHTML=all.slice(0,50).map(j=>`<div class="jentry ${j.phase||''}"><span class="j-date">${dateFR(j.timestamp)}</span> · <strong style="color:var(--bleu2)">${j.eNom}</strong> · ${j.epreuve} ${j.competence} → <strong>${j.niveau}</strong></div>`).join('')||'<div class="alert al-info">Aucune action</div>';
 }
+async function renderBackupList(){
+  const c=document.getElementById('backupList');
+  if(!c)return;
+  const bks=await getBackups();
+  if(!bks.length){c.innerHTML='<div class="alert al-info">Aucun backup disponible</div>';return;}
+  c.innerHTML=bks.slice(0,20).map(b=>{
+    const d=new Date(b.timestamp);
+    const dateStr=d.toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const timeStr=d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    const nbEleves=b.students?.length||0;
+    const nbVals=Object.values(b.validations||{}).reduce((a,v)=>a+(Array.isArray(v)?v.length:0),0);
+    return `<div style="display:flex;align-items:center;gap:.5rem;padding:.5rem;background:var(--gris2);border-radius:var(--r2);margin-bottom:.3rem;${b.auto?'':'border-left:3px solid var(--bleu)'}">
+      <div style="flex:1">
+        <div style="font-size:.8rem;font-weight:700">${dateStr} à ${timeStr} ${b.auto?'<span style="font-size:.65rem;color:var(--gris)">(auto)</span>':'<span style="font-size:.65rem;color:var(--bleu)">(manuel)</span>'}</div>
+        <div style="font-size:.7rem;color:var(--gris)">${nbEleves} élève(s) · ${nbVals} éval(s)</div>
+      </div>
+      <button class="btn btn-vert btn-xs" onclick="restoreBackup(${b.id})">♻️</button>
+      <button class="btn btn-rouge btn-xs" onclick="deleteBackup(${b.id})">🗑️</button>
+    </div>`;
+  }).join('');
+}
 function confirmPurge(){
   showModal('🗑️ Purger',`<div class="alert al-danger">⚠️ Efface TOUTES les données locales. Le cloud n'est pas affecté.</div>`,
     `<button class="btn btn-rouge" onclick="localStorage.removeItem('${SK}');closeModal();location.reload()">Oui, tout effacer</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
@@ -1689,8 +1831,10 @@ function updateAll(){renderDash();renderEleves();popSelects();updateStor();if(ap
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveLocal();toast('💾 Sauvegardé','ok');}});
 
 /* ═══ [M] INIT ═══ */
-function initApp(){
+async function initApp(){
+  await initDB();
   loadLocal();loadCfgToForm();updateAll();syncAll();setPhase('formatif');
+  startAutoBackup();
   // [Phase 3] Deep-link : ?eleve=ELV-001&mode=ep2
   handleDeepLink();
 }

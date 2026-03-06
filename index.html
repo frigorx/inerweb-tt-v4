@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>inerWeb TT — Portail CCF CAP IFCA</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bleu:#1b3a63; --bleu2:#2d5a8c; --bleu3:#e8f0f8;
+  --orange:#ff6b35; --vert:#27ae60; --vert2:#d4f4e2;
+  --teal:#16a085; --teal2:#d0f0ea;
+  --violet:#8e44ad; --violet2:#f3e5f5;
+  --gris:#6c757d; --gris2:#f0f2f5; --gris3:#dee2e6;
+  --texte:#1a2332;
+  --r:16px; --r2:10px;
+  --ombre:0 8px 32px rgba(27,58,99,.18);
+  --t:all .3s cubic-bezier(.4,0,.2,1);
+}
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior:smooth; }
+body {
+  font-family:'Nunito',sans-serif;
+  color:var(--texte);
+  background:linear-gradient(135deg, var(--bleu) 0%, var(--bleu2) 50%, var(--teal) 100%);
+  min-height:100dvh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:1.5rem;
+}
+
+.portal {
+  background:#fff;
+  border-radius:24px;
+  padding:2.5rem;
+  max-width:480px;
+  width:100%;
+  box-shadow:0 24px 80px rgba(0,0,0,.25);
+  text-align:center;
+}
+
+.logo {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:.75rem;
+  margin-bottom:.5rem;
+}
+.logo-ico { font-size:3rem; }
+.logo-txt h1 {
+  font-size:1.8rem;
+  font-weight:900;
+  color:var(--bleu);
+  line-height:1;
+}
+.logo-txt p {
+  font-size:.85rem;
+  color:var(--gris);
+  font-weight:600;
+}
+
+.version-badge {
+  display:inline-block;
+  background:var(--orange);
+  color:#fff;
+  font-size:.7rem;
+  font-weight:800;
+  padding:.25rem .7rem;
+  border-radius:20px;
+  margin-bottom:1.5rem;
+}
+
+.subtitle {
+  font-size:.9rem;
+  color:var(--gris);
+  margin-bottom:2rem;
+  line-height:1.5;
+}
+
+.roles {
+  display:flex;
+  flex-direction:column;
+  gap:1rem;
+}
+
+.role-card {
+  display:flex;
+  align-items:center;
+  gap:1rem;
+  padding:1.25rem;
+  border-radius:var(--r);
+  text-decoration:none;
+  color:var(--texte);
+  transition:var(--t);
+  border:2px solid transparent;
+  text-align:left;
+}
+.role-card:hover {
+  transform:translateY(-3px);
+  box-shadow:var(--ombre);
+}
+.role-card:active {
+  transform:scale(.98);
+}
+
+.role-prof {
+  background:var(--bleu3);
+  border-color:var(--bleu2);
+}
+.role-prof:hover { background:#d8e8f8; }
+.role-prof .role-ico { background:var(--bleu); }
+
+.role-tuteur {
+  background:var(--teal2);
+  border-color:var(--teal);
+}
+.role-tuteur:hover { background:#b8e8e0; }
+.role-tuteur .role-ico { background:var(--teal); }
+
+.role-eleve {
+  background:var(--violet2);
+  border-color:var(--violet);
+}
+.role-eleve:hover { background:#e8d0f0; }
+.role-eleve .role-ico { background:var(--violet); }
+
+.role-ico {
+  width:56px;
+  height:56px;
+  border-radius:14px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:1.8rem;
+  flex-shrink:0;
+}
+
+.role-info h2 {
+  font-size:1.1rem;
+  font-weight:800;
+  margin-bottom:.2rem;
+}
+.role-info p {
+  font-size:.78rem;
+  color:var(--gris);
+  font-weight:600;
+  line-height:1.4;
+}
+
+.footer {
+  margin-top:2rem;
+  padding-top:1.5rem;
+  border-top:2px solid var(--gris3);
+}
+.footer-title {
+  font-size:.75rem;
+  font-weight:800;
+  color:var(--gris);
+  text-transform:uppercase;
+  letter-spacing:.5px;
+  margin-bottom:.75rem;
+}
+.footer-links {
+  display:flex;
+  justify-content:center;
+  gap:1rem;
+  flex-wrap:wrap;
+}
+.footer-links a {
+  font-size:.75rem;
+  color:var(--bleu2);
+  text-decoration:none;
+  font-weight:700;
+  padding:.3rem .6rem;
+  border-radius:6px;
+  background:var(--gris2);
+  transition:var(--t);
+}
+.footer-links a:hover {
+  background:var(--bleu3);
+}
+
+.credits {
+  margin-top:1.5rem;
+  font-size:.7rem;
+  color:var(--gris);
+}
+.credits a {
+  color:var(--bleu2);
+  text-decoration:none;
+}
+
+/* Animation d'entrée */
+@keyframes fadeInUp {
+  from { opacity:0; transform:translateY(20px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.portal { animation:fadeInUp .5s ease-out; }
+.role-card:nth-child(1) { animation:fadeInUp .5s ease-out .1s both; }
+.role-card:nth-child(2) { animation:fadeInUp .5s ease-out .2s both; }
+.role-card:nth-child(3) { animation:fadeInUp .5s ease-out .3s both; }
+
+/* Responsive */
+@media (max-width:400px) {
+  .portal { padding:1.5rem; }
+  .logo-txt h1 { font-size:1.5rem; }
+  .role-card { padding:1rem; }
+  .role-ico { width:48px; height:48px; font-size:1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<div class="portal">
+  <div class="logo">
+    <span class="logo-ico">❄️</span>
+    <div class="logo-txt">
+      <h1>inerWeb TT</h1>
+      <p>CCF CAP IFCA</p>
+    </div>
+  </div>
+  
+  <span class="version-badge">Version 4.1</span>
+  
+  <p class="subtitle">
+    Suivi des compétences et évaluation CCF<br>
+    Installation Frigorifique & Conditionnement d'Air
+  </p>
+
+  <div class="roles">
+    <a href="inerweb_prof.html" class="role-card role-prof">
+      <div class="role-ico">👨‍🏫</div>
+      <div class="role-info">
+        <h2>Professeur</h2>
+        <p>Tableau de bord, évaluations EP2/EP3, bilans, exports PDF et gestion des élèves</p>
+      </div>
+    </a>
+
+    <a href="inerweb_tuteur.html" class="role-card role-tuteur">
+      <div class="role-ico">🏢</div>
+      <div class="role-info">
+        <h2>Tuteur entreprise</h2>
+        <p>Évaluation des compétences en PFMP, comportement et observations terrain</p>
+      </div>
+    </a>
+
+    <a href="inerweb_eleve.html" class="role-card role-eleve">
+      <div class="role-ico">🎓</div>
+      <div class="role-info">
+        <h2>Élève</h2>
+        <p>Journal de stage, suivi personnel des compétences et progression</p>
+      </div>
+    </a>
+  </div>
+
+  <div class="footer">
+    <div class="footer-title">Accès rapide</div>
+    <div class="footer-links">
+      <a href="inerweb_prof.html?demo=1">🎮 Mode démo</a>
+      <a href="https://github.com/frigorx/inerweb-tt" target="_blank">📦 GitHub</a>
+      <a href="mailto:inerweb.fh@gmail.com">📧 Contact</a>
+    </div>
+  </div>
+
+  <div class="credits">
+    Développé par <a href="#">F. Henninot</a> — Campus Equatio, Marseille<br>
+    © 2024-2026 · Licence éducative
+  </div>
+</div>
+
+<script>
+// Gestion des paramètres URL pour redirection directe
+const params = new URLSearchParams(window.location.search);
+const role = params.get('role');
+const eleve = params.get('eleve');
+const token = params.get('token');
+const tuteur = params.get('tuteur');
+
+if (role === 'prof') {
+  window.location.href = 'inerweb_prof.html';
+} else if (role === 'tuteur' && eleve) {
+  window.location.href = `inerweb_tuteur.html?eleve=${eleve}${tuteur ? '&tuteur=' + tuteur : ''}`;
+} else if (role === 'eleve' && eleve) {
+  window.location.href = `inerweb_eleve.html?eleve=${eleve}${token ? '&token=' + token : ''}`;
+}
+</script>
+
+</body>
+</html>
