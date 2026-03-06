@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>inerWeb TT 4.0 — Professeur</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+/* RADIOGUIDAGE CSS
+   [1] Variables & Reset
+   [2] Écran config
+   [3] Layout + tabs
+   [4] Header + nav bas
+   [5] Cards & composants
+   [6] Dashboard
+   [7] Évaluation (compétences)
+   [8] Stage
+   [9] Bilan
+   [10] Export & journal
+   [11] Élèves
+   [12] Modal, Toast, Spinner
+   [13] Responsive */
+
+/* [1] Variables & Reset */
+:root {
+  --bleu:#1b3a63; --bleu2:#2d5a8c; --bleu3:#e8f0f8;
+  --orange:#ff6b35; --vert:#27ae60; --vert2:#d4f4e2;
+  --rouge:#e74c3c; --rouge2:#fde8e6;
+  --violet:#8e44ad; --violet2:#f3e5f5;
+  --jaune:#f39c12; --jaune2:#fef9e7;
+  --teal:#16a085; --teal2:#d0f0ea;
+  --gris:#6c757d; --gris2:#f0f2f5; --gris3:#dee2e6;
+  --texte:#1a2332; --blanc:#fff;
+  --ep2:#2d5a8c; --ep3:#8e44ad; --stage:#16a085;
+  --r:12px; --r2:8px;
+  --ombre:0 4px 24px rgba(27,58,99,.12);
+  --ombre2:0 2px 8px rgba(27,58,99,.08);
+  --t:all .2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
+body{font-family:'Nunito',sans-serif;color:var(--texte);background:var(--gris2);min-height:100dvh;}
+input,select,textarea,button{font-family:inherit;}
+
+/* [2] Écran config */
+#screen-config{display:none;min-height:100dvh;background:linear-gradient(135deg,var(--bleu),var(--bleu2));align-items:center;justify-content:center;padding:1.5rem;}
+body.show-config #screen-config{display:flex;}
+.cfg-box{background:#fff;border-radius:20px;padding:2.5rem;max-width:480px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+.cfg-logo{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;}
+.cfg-logo-ico{font-size:2.5rem;}
+.cfg-logo-txt h1{font-size:1.5rem;font-weight:900;color:var(--bleu);line-height:1;}
+.cfg-logo-txt p{font-size:.8rem;color:var(--gris);font-weight:600;}
+.cfg-badge{background:var(--orange);color:#fff;font-size:.65rem;font-weight:800;padding:.15rem .5rem;border-radius:20px;}
+.cfg-hint{font-size:.75rem;color:var(--gris);background:var(--gris2);padding:.6rem .8rem;border-radius:var(--r2);border-left:3px solid var(--orange);margin-bottom:1rem;}
+.cfg-hint code{font-family:'JetBrains Mono',monospace;font-size:.68rem;color:var(--bleu);background:var(--bleu3);padding:.1rem .3rem;border-radius:4px;}
+.cfg-form{display:flex;flex-direction:column;gap:.8rem;}
+
+/* [3] Layout + tabs */
+#screen-app{display:none;flex-direction:column;min-height:100dvh;}
+body.show-app #screen-app{display:flex;}
+.main-content{flex:1;overflow-y:auto;padding-bottom:76px;}
+.tab-pane{display:none;}.tab-pane.active{display:block;}
+.tab-inner{max-width:900px;margin:0 auto;padding:1rem;}
+
+/* [4] Header + nav bas */
+.app-header{background:var(--bleu);color:#fff;padding:.6rem 1rem;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;gap:.5rem;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.hdr-logo{display:flex;align-items:center;gap:.5rem;flex-shrink:0;}
+.hdr-logo-ico{font-size:1.3rem;}
+.hdr-logo-name{font-weight:900;font-size:.95rem;line-height:1;}
+.hdr-logo-name em{display:block;font-style:normal;font-size:.62rem;opacity:.7;font-weight:600;}
+.hdr-mid{flex:1;text-align:center;font-size:.72rem;opacity:.8;font-weight:600;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.hdr-right{display:flex;align-items:center;gap:.5rem;flex-shrink:0;}
+.sync-pill{display:flex;align-items:center;gap:.3rem;background:rgba(255,255,255,.15);border-radius:20px;padding:.2rem .6rem;font-size:.68rem;font-weight:700;cursor:pointer;transition:var(--t);}
+.sync-pill:hover{background:rgba(255,255,255,.25);}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:var(--vert);flex-shrink:0;}
+.sync-dot.offline{background:var(--rouge);}
+.sync-dot.syncing{background:var(--jaune);animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:#fff;border-top:2px solid var(--gris3);display:flex;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(0,0,0,.08);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.45rem .2rem;border:none;background:none;cursor:pointer;color:var(--gris);font-size:.52rem;font-weight:700;gap:.15rem;transition:var(--t);position:relative;min-width:0;}
+.nav-btn .ni{font-size:1.1rem;line-height:1;}
+.nav-btn:hover{color:var(--bleu2);}
+.nav-btn.active{color:var(--bleu);}
+.nav-btn.active::after{content:'';position:absolute;top:0;left:15%;right:15%;height:3px;background:var(--orange);border-radius:0 0 4px 4px;}
+.nav-badge{position:absolute;top:.3rem;right:calc(50% - 1.1rem);background:var(--rouge);color:#fff;font-size:.5rem;font-weight:800;min-width:14px;height:14px;border-radius:7px;padding:0 .25rem;display:flex;align-items:center;justify-content:center;}
+
+/* [5] Cards & composants */
+.card{background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--ombre2);margin-bottom:.75rem;}
+.card-title{font-size:.95rem;font-weight:800;color:var(--bleu);display:flex;align-items:center;gap:.4rem;margin-bottom:.75rem;}
+.btn{display:inline-flex;align-items:center;gap:.35rem;padding:.55rem 1rem;border-radius:var(--r2);border:none;cursor:pointer;font-weight:700;font-size:.82rem;transition:var(--t);text-decoration:none;white-space:nowrap;}
+.btn:active{transform:scale(.97);}
+.btn-primary{background:var(--bleu);color:#fff;}.btn-primary:hover{background:var(--bleu2);}
+.btn-orange{background:var(--orange);color:#fff;}.btn-orange:hover{opacity:.9;}
+.btn-vert{background:var(--vert);color:#fff;}.btn-vert:hover{opacity:.9;}
+.btn-rouge{background:var(--rouge);color:#fff;}.btn-rouge:hover{opacity:.9;}
+.btn-violet{background:var(--violet);color:#fff;}.btn-violet:hover{opacity:.9;}
+.btn-teal{background:var(--teal);color:#fff;}.btn-teal:hover{opacity:.9;}
+.btn-ghost{background:var(--gris2);color:var(--texte);}.btn-ghost:hover{background:var(--gris3);}
+.btn-sm{padding:.35rem .7rem;font-size:.75rem;}.btn-xs{padding:.2rem .5rem;font-size:.68rem;}.btn-full{width:100%;justify-content:center;}
+.fr{display:flex;flex-direction:column;gap:.35rem;}
+.fr label{font-size:.75rem;font-weight:800;color:var(--bleu);text-transform:uppercase;letter-spacing:.3px;}
+.fr input,.fr select,.fr textarea{padding:.6rem .8rem;border:2px solid var(--gris3);border-radius:var(--r2);font-size:.85rem;transition:var(--t);background:#fff;}
+.fr input:focus,.fr select:focus,.fr textarea:focus{outline:none;border-color:var(--bleu2);box-shadow:0 0 0 3px rgba(45,90,140,.1);}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem;}
+.badge{display:inline-flex;align-items:center;padding:.15rem .5rem;border-radius:20px;font-size:.65rem;font-weight:800;}
+.b-ep2{background:var(--bleu3);color:var(--bleu2);}.b-ep3{background:var(--violet2);color:var(--violet);}
+.b-vert{background:var(--vert2);color:var(--vert);}.b-rouge{background:var(--rouge2);color:var(--rouge);}
+.b-jaune{background:var(--jaune2);color:var(--jaune);}.b-gris{background:var(--gris2);color:var(--gris);}
+.lv-pm{background:#d4f4e2;color:#1a7d3e;}.lv-m{background:var(--bleu3);color:var(--bleu2);}
+.lv-ec{background:var(--jaune2);color:#a06e00;}.lv-ne{background:var(--gris2);color:var(--gris);}
+.alert{padding:.7rem .9rem;border-radius:var(--r2);font-size:.8rem;margin-bottom:.5rem;}
+.al-info{background:var(--bleu3);color:var(--bleu2);border-left:3px solid var(--bleu2);}
+.al-warn{background:var(--jaune2);color:#7a5000;border-left:3px solid var(--jaune);}
+.al-danger{background:var(--rouge2);color:var(--rouge);border-left:3px solid var(--rouge);}
+.al-ok{background:var(--vert2);color:var(--vert);border-left:3px solid var(--vert);}
+.empty{text-align:center;padding:3rem 1rem;color:var(--gris);}
+.empty .ei{font-size:2.5rem;margin-bottom:.75rem;}
+.empty p{font-size:.85rem;font-weight:600;}
+
+/* [6] Dashboard */
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.75rem;}
+.stat-card{background:#fff;border-radius:var(--r2);padding:.75rem .5rem;text-align:center;box-shadow:var(--ombre2);}
+.stat-num{font-size:1.6rem;font-weight:900;line-height:1;}
+.stat-lbl{font-size:.6rem;font-weight:800;color:var(--gris);text-transform:uppercase;letter-spacing:.3px;margin-top:.2rem;}
+.student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.6rem;}
+.sc{background:#fff;border-radius:var(--r);padding:.9rem;cursor:pointer;box-shadow:var(--ombre2);transition:var(--t);border-left:4px solid transparent;}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--ombre);border-left-color:var(--bleu2);}
+.sc.alerte{border-left-color:var(--rouge);}.sc.en-cours{border-left-color:var(--jaune);}.sc.complet{border-left-color:var(--vert);}
+.sc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:.6rem;}
+.sc-nom{font-weight:800;font-size:.9rem;}.sc-cls{font-size:.7rem;color:var(--gris);font-weight:600;}
+.sc-code{font-family:'JetBrains Mono',monospace;font-size:.65rem;color:var(--bleu2);background:var(--bleu3);padding:.1rem .4rem;border-radius:4px;}
+.sc-bar-row{display:flex;align-items:center;gap:.4rem;margin-top:.35rem;font-size:.65rem;color:var(--gris);font-weight:700;}
+.sc-bar-row span:first-child{width:28px;flex-shrink:0;}
+.sc-track{flex:1;background:var(--gris2);border-radius:20px;height:5px;overflow:hidden;}
+.sc-fill{height:100%;border-radius:20px;transition:width .4s ease;}
+.f-ep2{background:var(--ep2);}.f-ep3{background:var(--ep3);}
+.sc-bot{font-size:.65rem;color:var(--gris);margin-top:.5rem;font-weight:600;}
+.sc-alerte{font-size:.65rem;color:var(--rouge);font-weight:700;margin-top:.3rem;}
+
+/* [7] Évaluation */
+.eval-hdr{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;}
+.eval-sel-wrap{display:flex;align-items:center;gap:.4rem;flex:1;min-width:200px;}
+.eval-sel-wrap select{flex:1;padding:.5rem .7rem;border:2px solid var(--gris3);border-radius:var(--r2);font-weight:700;font-size:.82rem;}
+.nav-arrows{display:flex;gap:.25rem;}
+.nav-arrows button{width:30px;height:30px;border:2px solid var(--gris3);background:#fff;border-radius:var(--r2);cursor:pointer;font-size:.8rem;transition:var(--t);}
+.nav-arrows button:hover{background:var(--bleu);color:#fff;border-color:var(--bleu);}
+.ctx-tabs{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:.75rem;}
+.ctx-tab{padding:.35rem .7rem;border-radius:20px;border:2px solid var(--gris3);background:#fff;cursor:pointer;font-weight:700;font-size:.72rem;transition:var(--t);}
+.ctx-tab.active{background:var(--bleu2);color:#fff;border-color:var(--bleu2);}
+.ctx-tab.sit.active{background:var(--violet);color:#fff;border-color:var(--violet);}
+.comp-block{background:#fff;border-radius:var(--r);margin-bottom:.5rem;overflow:hidden;box-shadow:var(--ombre2);}
+.comp-hdr{display:flex;align-items:center;gap:.5rem;padding:.7rem .9rem;cursor:pointer;transition:var(--t);flex-wrap:wrap;}
+.comp-hdr:hover{background:var(--gris2);}.comp-hdr.open{background:var(--bleu3);}
+.comp-code{font-family:'JetBrains Mono',monospace;font-size:.72rem;font-weight:700;color:var(--bleu2);background:var(--bleu3);padding:.15rem .4rem;border-radius:4px;flex-shrink:0;}
+.comp-nom{font-weight:700;font-size:.82rem;flex:1;min-width:100px;}
+.comp-oblig{font-size:.6rem;color:var(--orange);font-weight:800;}
+.comp-lv{padding:.15rem .45rem;border-radius:20px;font-size:.65rem;font-weight:800;flex-shrink:0;}
+.comp-arrow{font-size:.7rem;color:var(--gris);flex-shrink:0;transition:transform .2s;}
+.comp-hdr.open .comp-arrow{transform:rotate(180deg);}
+.comp-body{display:none;padding:0 .9rem .9rem;border-top:1px solid var(--gris3);}
+.comp-body.open{display:block;}
+.comp-full{font-size:.72rem;color:var(--gris);font-weight:600;margin:.5rem 0;}
+.crit-list{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.6rem;}
+.crit-item{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
+.crit-nom{font-size:.75rem;font-weight:600;flex:1;min-width:120px;}
+.crit-btns{display:flex;gap:.2rem;}
+.cb{padding:.2rem .45rem;border-radius:6px;border:2px solid transparent;font-weight:800;font-size:.65rem;cursor:pointer;transition:var(--t);background:var(--gris2);}
+.cb.b-PM{color:#1a7d3e;}.cb.b-M{color:var(--bleu2);}.cb.b-EC{color:#a06e00;}.cb.b-NE{color:var(--gris);}
+.cb.b-PM.sel{background:#d4f4e2;border-color:#1a7d3e;}.cb.b-M.sel{background:var(--bleu3);border-color:var(--bleu2);}
+.cb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.cb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}
+.comp-global{display:flex;align-items:center;gap:.5rem;padding:.5rem;background:var(--gris2);border-radius:var(--r2);margin-top:.4rem;}
+.cg-lbl{font-size:.72rem;font-weight:800;color:var(--bleu);flex-shrink:0;}
+.gb-wrap{display:flex;gap:.3rem;}
+.gb{padding:.3rem .6rem;border-radius:var(--r2);border:2px solid transparent;font-weight:800;font-size:.75rem;cursor:pointer;transition:var(--t);background:#fff;}
+.gb.b-PM{color:#1a7d3e;}.gb.b-M{color:var(--bleu2);}.gb.b-EC{color:#a06e00;}.gb.b-NE{color:var(--gris);}
+.gb.b-PM.sel{background:#d4f4e2;border-color:#1a7d3e;}.gb.b-M.sel{background:var(--bleu3);border-color:var(--bleu2);}
+.gb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.gb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}
+.obs-area{width:100%;padding:.5rem .7rem;border:2px solid var(--gris3);border-radius:var(--r2);font-size:.78rem;resize:vertical;margin-top:.5rem;transition:var(--t);}
+.obs-area:focus{outline:none;border-color:var(--bleu2);}
+
+/* [8] Stage */
+.stage-tabs{display:flex;gap:.3rem;margin-bottom:.75rem;flex-wrap:wrap;}
+.stage-tab{padding:.35rem .75rem;border-radius:20px;border:2px solid var(--gris3);background:#fff;cursor:pointer;font-weight:700;font-size:.75rem;transition:var(--t);}
+.stage-tab.active{background:var(--teal);color:#fff;border-color:var(--teal);}
+.stage-panel{display:none;}.stage-panel.active{display:block;}
+.se-card{background:#fff;border-radius:var(--r);padding:.9rem;margin-bottom:.6rem;box-shadow:var(--ombre2);border-left:4px solid var(--stage);}
+.se-nom{font-weight:800;font-size:.9rem;}.se-meta{font-size:.7rem;color:var(--gris);font-weight:600;}
+.se-co{font-size:.8rem;color:var(--teal);font-weight:700;}
+.j-count{background:var(--teal2);color:var(--teal);padding:.15rem .5rem;border-radius:20px;font-size:.65rem;font-weight:800;}
+.part-card{background:#fff;border-radius:var(--r);padding:.9rem;margin-bottom:.5rem;box-shadow:var(--ombre2);border-left:4px solid var(--jaune);}
+.part-nom{font-weight:800;font-size:.85rem;}.part-sub{font-size:.75rem;color:var(--gris);margin-top:.2rem;}
+.stars{color:var(--jaune);font-size:.8rem;}
+
+/* [9] Bilan */
+.bilan-notes{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:.75rem;}
+.bn-card{background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--ombre2);text-align:center;}
+.bn-lbl{font-size:.72rem;font-weight:800;margin-bottom:.4rem;}
+.bn-big{font-size:2.2rem;font-weight:900;line-height:1;margin-bottom:.2rem;}
+.bn-sub{font-size:.68rem;color:var(--gris);}
+.bilan-table{width:100%;border-collapse:collapse;font-size:.75rem;}
+.bilan-table th{background:var(--gris2);padding:.5rem;text-align:left;font-size:.65rem;text-transform:uppercase;letter-spacing:.3px;}
+.bilan-table td{padding:.4rem .5rem;border-bottom:1px solid var(--gris3);}
+.bilan-table tr:last-child td{border-bottom:none;}
+.cloture-bar{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem;}
+
+/* [10] Export & journal */
+.export-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:.6rem;margin-bottom:.75rem;}
+.exp-card{background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--ombre2);text-align:center;cursor:pointer;transition:var(--t);}
+.exp-card:hover{transform:translateY(-2px);box-shadow:var(--ombre);}
+.exp-icon{font-size:2rem;margin-bottom:.4rem;}
+.exp-lbl{font-size:.75rem;font-weight:800;}
+.exp-sub{font-size:.65rem;color:var(--gris);margin-top:.15rem;}
+.jentry{padding:.5rem .7rem;border-radius:var(--r2);background:var(--gris2);margin-bottom:.3rem;border-left:3px solid var(--gris3);font-size:.75rem;}
+.jentry.cert{border-left-color:var(--orange);}.jentry.format{border-left-color:var(--bleu2);}
+.j-date{color:var(--gris);font-size:.65rem;}
+.import-zone{border:2px dashed var(--gris3);border-radius:var(--r);padding:2rem 1rem;text-align:center;cursor:pointer;transition:var(--t);background:#fff;}
+.import-zone:hover{border-color:var(--bleu2);background:var(--bleu3);}
+.iz-ico{font-size:1.75rem;margin-bottom:.4rem;}
+.iz-txt{font-size:.8rem;font-weight:700;color:var(--bleu);}
+.iz-sub{font-size:.68rem;color:var(--gris);margin-top:.2rem;}
+
+/* [11] Élèves */
+.eleves-tb{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem;}
+.el-row{display:flex;align-items:center;gap:.75rem;padding:.7rem .9rem;background:#fff;border-radius:var(--r2);margin-bottom:.3rem;box-shadow:var(--ombre2);transition:var(--t);}
+.el-row:hover{background:var(--bleu3);}
+.el-av{width:36px;height:36px;border-radius:50%;background:var(--bleu);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:.8rem;flex-shrink:0;}
+.el-nom{font-weight:800;font-size:.85rem;}.el-meta{font-size:.68rem;color:var(--gris);font-weight:600;}
+.el-act{display:flex;gap:.25rem;margin-left:auto;flex-shrink:0;}
+.stor-bar{background:var(--gris2);border-radius:20px;height:6px;overflow:hidden;margin-top:.3rem;}
+.stor-fill{height:100%;border-radius:20px;background:var(--vert);transition:width .3s;}
+.stor-fill.warn{background:var(--jaune);}.stor-fill.danger{background:var(--rouge);}
+
+/* [12] Modal, Toast, Spinner */
+.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;align-items:center;justify-content:center;padding:1rem;}
+.modal-ov.open{display:flex;}
+.modal-box{background:#fff;border-radius:var(--r);padding:1.5rem;max-width:500px;width:100%;max-height:85vh;overflow-y:auto;}
+.modal-title{font-size:1rem;font-weight:900;color:var(--bleu);margin-bottom:1rem;}
+.modal-act{display:flex;gap:.5rem;justify-content:flex-end;margin-top:1rem;flex-wrap:wrap;}
+.spin-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:600;align-items:center;justify-content:center;}
+.spin-ov.open{display:flex;}
+.spinner{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.toast-c{position:fixed;top:70px;right:1rem;z-index:700;display:flex;flex-direction:column;gap:.3rem;pointer-events:none;}
+.toast{padding:.55rem 1rem;border-radius:var(--r2);font-size:.78rem;font-weight:700;box-shadow:var(--ombre);min-width:160px;animation:slideIn .25s ease;pointer-events:auto;}
+@keyframes slideIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+.toast.ok{background:var(--vert);color:#fff;}.toast.err{background:var(--rouge);color:#fff;}
+.toast.warn{background:var(--jaune);color:#333;}.toast.inf{background:var(--bleu);color:#fff;}
+.qr-wrap{display:flex;flex-direction:column;gap:.75rem;}
+.qr-item{background:var(--gris2);border-radius:var(--r);padding:.75rem;text-align:center;}
+.qr-lbl{font-size:.7rem;font-weight:800;color:var(--bleu);margin-bottom:.5rem;text-transform:uppercase;letter-spacing:.3px;}
+.qr-url{font-size:.6rem;color:var(--gris);font-family:'JetBrains Mono',monospace;word-break:break-all;}
+
+/* Mode démo */
+body.demo-mode .app-header{background:repeating-linear-gradient(45deg,var(--bleu),var(--bleu) 10px,#1e4070 10px,#1e4070 20px);}
+body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;transform:translateX(-50%);background:var(--jaune);color:#333;font-weight:900;font-size:.65rem;padding:.15rem 1rem;border-radius:0 0 6px 6px;z-index:300;letter-spacing:1px;}
+
+/* [13] Responsive */
+@media(max-width:640px){
+  .dash-stats{grid-template-columns:repeat(2,1fr);}
+  .student-grid,.bilan-notes{grid-template-columns:1fr;}
+  .grid2,.grid3{grid-template-columns:1fr;}
+  .export-grid{grid-template-columns:repeat(2,1fr);}
+  .hdr-mid{display:none;}
+}
+</style>
+</head>
+<body class="show-config">
+
+<!-- ÉCRAN CONFIG -->
+<div id="screen-config">
+  <div class="cfg-box">
+    <div class="cfg-logo">
+      <div class="cfg-logo-ico">❄️</div>
+      <div class="cfg-logo-txt"><h1>inerWeb TT</h1><p>CCF + Stage — Plateforme professeur</p></div>
+      <span class="cfg-badge">v3.0</span>
+    </div>
+    <div class="cfg-hint">
+      <code>URL API</code> = URL de déploiement Code.gs ·
+      <code>Clé maître</code> = MASTER_KEY dans Code.gs
+    </div>
+    <div class="cfg-form">
+      <div class="fr"><label>URL API Google Apps Script</label><input id="cfgUrl" type="url" placeholder="https://script.google.com/macros/s/..."></div>
+      <div class="fr"><label>Clé maître</label><input id="cfgKey" type="password" placeholder="IFCA-2026-PROF-XXXXX"></div>
+      <div class="fr"><label>Votre nom</label><input id="cfgNom" placeholder="F. Henninot"></div>
+      <div class="fr"><label>URL GitHub Pages (QR codes)</label><input id="cfgBase" placeholder="https://frigorx.github.io/inerweb-tt/"></div>
+      <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem;">
+        <button class="btn btn-orange btn-full" onclick="saveConfig()">▶ Accéder à la plateforme</button>
+        <button class="btn btn-ghost btn-full" onclick="loadDemoMode()">🎮 Mode démo (données fictives IFCA)</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ÉCRAN APP -->
+<div id="screen-app">
+  <header class="app-header">
+    <div class="hdr-logo"><span class="hdr-logo-ico">❄️</span><div class="hdr-logo-name">inerWeb TT<em>CAP IFCA — Marseille</em></div></div>
+    <div class="hdr-mid" id="hdrEtab">Campus Equatio</div>
+    <div class="hdr-right">
+      <div class="sync-pill" onclick="syncAll()"><span class="sync-dot syncing" id="syncDot"></span><span id="syncLbl">Sync...</span></div>
+      <button class="btn btn-ghost btn-xs" onclick="showParamModal()">⚙️</button>
+    </div>
+  </header>
+
+  <main class="main-content">
+
+    <!-- DASHBOARD -->
+    <div class="tab-pane active" id="tab-dashboard"><div class="tab-inner">
+      <div class="dash-stats">
+        <div class="stat-card"><div class="stat-num" id="statTotal" style="color:var(--bleu)">—</div><div class="stat-lbl">Élèves</div></div>
+        <div class="stat-card"><div class="stat-num" id="statAlertes" style="color:var(--rouge)">—</div><div class="stat-lbl">Alertes</div></div>
+        <div class="stat-card"><div class="stat-num" id="statClos" style="color:var(--vert)">—</div><div class="stat-lbl">Clôturés</div></div>
+        <div class="stat-card"><div class="stat-num" id="statActifs" style="color:var(--teal)">—</div><div class="stat-lbl">En stage</div></div>
+      </div>
+      <div id="dashGrid" class="student-grid"><div class="empty" style="grid-column:1/-1"><div class="ei">⏳</div><p>Chargement...</p></div></div>
+    </div></div>
+
+    <!-- ÉLÈVES -->
+    <div class="tab-pane" id="tab-eleves"><div class="tab-inner">
+      <div class="eleves-tb">
+        <button class="btn btn-primary btn-sm" onclick="showAddEleve()">➕ Ajouter</button>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importCsv').click()">📥 Import CSV/XLSX</button>
+        <input type="file" id="importCsv" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleImportFile(this.files[0])">
+        <button class="btn btn-ghost btn-sm" onclick="showQRAll()">📱 QR codes</button>
+        <button class="btn btn-ghost btn-sm" onclick="syncAll()">🔄 Sync</button>
+      </div>
+      <div id="elevesList"><div class="empty"><div class="ei">👥</div><p>Aucun élève</p></div></div>
+      <div class="card" style="margin-top:.5rem">
+        <div style="display:flex;justify-content:space-between;font-size:.72rem;"><span style="font-weight:700;color:var(--bleu)">💾 Stockage local</span><span id="storTxt" style="color:var(--gris)">—</span></div>
+        <div class="stor-bar"><div class="stor-fill" id="storFill" style="width:0%"></div></div>
+      </div>
+    </div></div>
+
+    <!-- EP2 -->
+    <div class="tab-pane" id="tab-ep2"><div class="tab-inner">
+      <div class="eval-hdr">
+        <div class="eval-sel-wrap">
+          <select id="selEP2" onchange="selectStudent(this.value,'ep2')"></select>
+          <div class="nav-arrows"><button onclick="navStudent(-1,'ep2')">◀</button><button onclick="navStudent(1,'ep2')">▶</button></div>
+        </div>
+        <span class="badge b-ep2">EP2 — Réalisation</span>
+      </div>
+      <div class="ctx-tabs">
+        <button class="ctx-tab active" data-ctx="atelier" onclick="switchCtx('atelier')">🏭 Atelier</button>
+        <button class="ctx-tab" data-ctx="pfmp1" onclick="switchCtx('pfmp1')">🏢 PFMP 1</button>
+        <button class="ctx-tab" data-ctx="pfmp2" onclick="switchCtx('pfmp2')">🏢 PFMP 2</button>
+        <button class="ctx-tab" data-ctx="dossier" onclick="switchCtx('dossier')">📁 Dossier</button>
+      </div>
+      <div id="ep2List"></div>
+    </div></div>
+
+    <!-- EP3 -->
+    <div class="tab-pane" id="tab-ep3"><div class="tab-inner">
+      <div class="eval-hdr">
+        <div class="eval-sel-wrap">
+          <select id="selEP3" onchange="selectStudent(this.value,'ep3')"></select>
+          <div class="nav-arrows"><button onclick="navStudent(-1,'ep3')">◀</button><button onclick="navStudent(1,'ep3')">▶</button></div>
+        </div>
+        <span class="badge b-ep3">EP3 — Entretien & MeS</span>
+      </div>
+      <div class="ctx-tabs">
+        <button class="ctx-tab sit active" data-sit="A" onclick="switchSit('A')">⚙️ Sit. A — Mise en service</button>
+        <button class="ctx-tab sit" data-sit="B" onclick="switchSit('B')">🔍 Sit. B — Maintenance</button>
+        <button class="ctx-tab sit" data-sit="C" onclick="switchSit('C')">📋 Sit. C — Documents</button>
+      </div>
+      <div id="ep3Info" class="alert al-info" style="margin-bottom:.75rem;font-size:.8rem;font-weight:700;"></div>
+      <div id="ep3Synth" class="card" style="display:none;margin-bottom:.75rem;">
+        <div style="font-size:.8rem;font-weight:800;color:var(--bleu);margin-bottom:.5rem">📊 Synthèse EP3</div>
+        <div id="ep3SynthGrid" style="display:flex;flex-wrap:wrap;gap:.3rem;"></div>
+      </div>
+      <div id="ep3List"></div>
+    </div></div>
+
+    <!-- STAGE -->
+    <div class="tab-pane" id="tab-stage"><div class="tab-inner">
+      <div class="stage-tabs">
+        <button class="stage-tab active" data-sp="suivi" onclick="switchStagePanel('suivi')">📓 Suivi élèves</button>
+        <button class="stage-tab" data-sp="partenaires" onclick="switchStagePanel('partenaires')">🏢 Partenaires</button>
+        <button class="stage-tab" data-sp="comm" onclick="switchStagePanel('comm')">📣 Communication</button>
+      </div>
+      <div class="stage-panel active" id="sp-suivi">
+        <div id="stageList"><div class="empty"><div class="ei">🏢</div><p>Chargement...</p></div></div>
+      </div>
+      <div class="stage-panel" id="sp-partenaires">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
+          <span style="font-weight:800;color:var(--bleu)">🏢 Partenaires CRM</span>
+          <button class="btn btn-teal btn-sm" onclick="showAddPart()">➕ Ajouter</button>
+        </div>
+        <div id="partList"><div class="empty"><div class="ei">🏢</div><p>Aucun partenaire</p></div></div>
+      </div>
+      <div class="stage-panel" id="sp-comm">
+        <div class="card">
+          <div class="card-title">📣 Contacter les tuteurs</div>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:.75rem;">
+            <button class="btn btn-ghost btn-sm" onclick="prepMsg('bienvenue')">👋 Bienvenue</button>
+            <button class="btn btn-ghost btn-sm" onclick="prepMsg('rappel')">🔔 Rappel</button>
+            <button class="btn btn-ghost btn-sm" onclick="prepMsg('alerte')">⚠️ Alerte</button>
+          </div>
+          <div class="fr" style="margin-bottom:.75rem;"><label>Message</label>
+            <textarea id="msgTpl" rows="4" style="width:100%;padding:.5rem;border:2px solid var(--gris3);border-radius:var(--r2);" placeholder="Bonjour,&#10;..."></textarea>
+          </div>
+          <div id="commList"></div>
+        </div>
+      </div>
+    </div></div>
+
+    <!-- BILAN -->
+    <div class="tab-pane" id="tab-bilan"><div class="tab-inner">
+      <div class="eval-hdr" style="margin-bottom:.75rem;">
+        <div class="eval-sel-wrap">
+          <select id="selBilan" onchange="selectStudent(this.value,'bilan')"></select>
+          <div class="nav-arrows"><button onclick="navStudent(-1,'bilan')">◀</button><button onclick="navStudent(1,'bilan')">▶</button></div>
+        </div>
+        <div style="display:flex;gap:.3rem;">
+          <button id="btnFormatif" class="btn btn-primary btn-sm" onclick="setPhase('formatif')">📘 Formatif</button>
+          <button id="btnCertif" class="btn btn-ghost btn-sm" onclick="setPhase('certificatif')">📙 Certif.</button>
+        </div>
+      </div>
+      <div id="bilanContent"><div class="empty"><div class="ei">🏆</div><p>Sélectionnez un élève</p></div></div>
+    </div></div>
+
+    <!-- EXPORT -->
+    <div class="tab-pane" id="tab-export"><div class="tab-inner">
+      <div class="export-grid">
+        <div class="exp-card" onclick="exportStudentPDF()"><div class="exp-icon">📄</div><div class="exp-lbl">PDF fiche élève</div><div class="exp-sub">Rapport inspection</div></div>
+        <div class="exp-card" onclick="exportAllPDF()"><div class="exp-icon">📚</div><div class="exp-lbl">PDF classe entière</div><div class="exp-sub">Tous les élèves</div></div>
+        <div class="exp-card" onclick="exportExcel()"><div class="exp-icon">📊</div><div class="exp-lbl">Excel récap.</div><div class="exp-sub">Notes EP2 + EP3</div></div>
+        <div class="exp-card" onclick="exportBackup()"><div class="exp-icon">💾</div><div class="exp-lbl">Backup JSON</div><div class="exp-sub">Toutes les données</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🔀 Fusion multi-évaluateurs</div>
+        <p style="font-size:.78rem;color:var(--gris);margin-bottom:.75rem;">Importez le backup d'un collègue — empilement sans écrasement.</p>
+        <div class="import-zone" onclick="document.getElementById('fusionFile').click()">
+          <div class="iz-ico">🔀</div><div class="iz-txt">Déposer ou cliquer — backup JSON collègue</div>
+          <div class="iz-sub">Les données existantes sont préservées</div>
+        </div>
+        <input type="file" id="fusionFile" accept=".json" style="display:none" onchange="handleFusion(this.files[0])">
+      </div>
+      <div class="card">
+        <div class="card-title">♻️ Restaurer / Migrer v10→v11→TT3</div>
+        <div class="import-zone" onclick="document.getElementById('restoreFile').click()">
+          <div class="iz-ico">📂</div><div class="iz-txt">Importer un backup JSON</div>
+          <div class="iz-sub">Migration v10 / v11 / TT 3.0 → TT 4.0 incluse automatiquement</div>
+        </div>
+        <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="handleRestore(this.files[0])">
+        <button class="btn btn-rouge btn-sm" style="margin-top:.5rem" onclick="confirmPurge()">🗑️ Purger données locales</button>
+      </div>
+      <div class="card"><div class="card-title">📖 Journal des actions</div><div id="journalGlobal" style="max-height:300px;overflow-y:auto;"></div></div>
+    </div></div>
+
+    <!-- CONFIG -->
+    <div class="tab-pane" id="tab-config"><div class="tab-inner">
+      <div class="card">
+        <div class="card-title">⚙️ Configuration établissement</div>
+        <div class="fr" style="margin-bottom:.6rem;"><label>Établissement</label><input id="cEtab" placeholder="Lycée Pro. Privé Jacques Raynaud"></div>
+        <div class="grid2" style="margin-bottom:.6rem;"><div class="fr"><label>Ville</label><input id="cVille" placeholder="Marseille"></div><div class="fr"><label>Académie</label><input id="cAcad" placeholder="Aix-Marseille"></div></div>
+        <div class="grid2" style="margin-bottom:.6rem;"><div class="fr"><label>Session</label><input id="cSession" type="number" value="2026"></div><div class="fr"><label>Évaluateur principal</label><input id="cEval" placeholder="F. Henninot"></div></div>
+        <div class="fr" style="margin-bottom:.75rem;"><label>Évaluateur collègue</label><input id="cCollegue" placeholder="J. Martin"></div>
+        <button class="btn btn-primary" onclick="saveAppConfig()">💾 Enregistrer</button>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Barème de notation</div>
+        <p style="font-size:.75rem;color:var(--gris);margin-bottom:.75rem;">% attribué à chaque niveau. Défaut : PM=100%, M=70%, EC=35%</p>
+        <div class="grid3" style="margin-bottom:.75rem;">
+          <div class="fr"><label>PM (%)</label><input id="cPM" type="number" value="100" min="0" max="100"></div>
+          <div class="fr"><label>M (%)</label><input id="cM" type="number" value="70" min="0" max="100"></div>
+          <div class="fr"><label>EC (%)</label><input id="cEC" type="number" value="35" min="0" max="100"></div>
+        </div>
+        <button class="btn btn-primary" onclick="saveAppConfig()">💾 Enregistrer barème</button>
+      </div>
+      <div class="card">
+        <div class="card-title">🎮 Outils</div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;">
+          <button class="btn btn-orange" onclick="toggleDemoMode()">🎮 Activer/Désactiver démo</button>
+          <button class="btn btn-ghost" onclick="showConfigScreen()">🔑 Reconfigurer l'API</button>
+        </div>
+      </div>
+    </div></div>
+
+  </main>
+
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="ni">🏠</span>Tableau</button>
+    <button class="nav-btn" data-tab="eleves" onclick="switchTab('eleves')"><span class="ni">👥</span>Élèves</button>
+    <button class="nav-btn" data-tab="ep2" onclick="switchTab('ep2')"><span class="ni">🔧</span>EP2</button>
+    <button class="nav-btn" data-tab="ep3" onclick="switchTab('ep3')"><span class="ni">⚡</span>EP3</button>
+    <button class="nav-btn" data-tab="stage" onclick="switchTab('stage')"><span class="ni">🏢</span>Stage</button>
+    <button class="nav-btn" data-tab="bilan" onclick="switchTab('bilan')"><span class="ni">🏆</span>Bilan</button>
+    <button class="nav-btn" data-tab="export" onclick="switchTab('export')"><span class="ni">📤</span>Export</button>
+    <button class="nav-btn" data-tab="config" onclick="switchTab('config')"><span class="ni">⚙️</span>Config</button>
+  </nav>
+</div>
+
+<div class="modal-ov" id="modalOv" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box"><div class="modal-title" id="modalTitle"></div><div id="modalBody"></div><div class="modal-act" id="modalAct"></div></div>
+</div>
+<div class="spin-ov" id="spinOv"><div class="spinner"></div></div>
+<div class="toast-c" id="toastC"></div>
+
+<script>
+/* RADIOGUIDAGE JS
+   [A] Référentiel CAP IFCA EP2 + EP3
+   [B] État global + constantes
+   [C] CORE : Config + API + localStorage + Sync
+   [D] Navigation
+   [E] Dashboard
+   [F] EP2 / EP3
+   [G] Stage : Suivi + CRM + Communication
+   [H] Bilan : Calcul + Notes + Clôture
+   [I] Élèves : CRUD + QR + Import
+   [J] Export : PDF + Excel + Backup + Fusion
+   [K] Config app
+   [L] Utilitaires
+   [M] Init */
+
+/* ═══ [A] RÉFÉRENTIEL ═══ */
+const COMP_EP2=[
+  {code:"C1.2",nom:"Communiquer",     full:"Communiquer avec les différents acteurs",              obl:false,poids:1,   lieux:["dossier"]},
+  {code:"C3.1",nom:"Organisation",    full:"Organiser le poste de travail",                        obl:true, poids:1.5, lieux:["atelier","pfmp1","pfmp2"]},
+  {code:"C3.2",nom:"Identifier réseaux",full:"Identifier sur site les réseaux d'alimentation",    obl:true, poids:1.5, lieux:["atelier","pfmp1","pfmp2"]},
+  {code:"C3.3",nom:"Implanter, fixer",full:"Implanter, manutentionner, fixer les supportages",    obl:true, poids:2,   lieux:["atelier","pfmp1","pfmp2"]},
+  {code:"C3.4",nom:"Façonner, raccorder",full:"Façonner, raccorder, assembler, isoler les circuits",obl:true,poids:5,  lieux:["atelier","pfmp1","pfmp2"]},
+  {code:"C3.5",nom:"Soudure/PER",     full:"Soudage acier et raccorder le PER",                   obl:false,poids:1.5, lieux:["atelier"]},
+  {code:"C3.6",nom:"Câbler, connecter",full:"Câbler, repérer, connecter les liaisons électriques",obl:true, poids:3,   lieux:["atelier","pfmp1","pfmp2"]},
+  {code:"C3.7",nom:"Contrôles",       full:"Contrôler la mise en œuvre des équipements",          obl:true, poids:2,   lieux:["atelier","pfmp1","pfmp2"]},
+  {code:"C3.8",nom:"Tri déchets",     full:"Trier, valoriser les déchets",                        obl:true, poids:1,   lieux:["atelier","pfmp1","pfmp2"]},
+  {code:"C3.9",nom:"Étanchéité",      full:"Vérifier l'étanchéité avant mise en service",         obl:true, poids:2.5, lieux:["atelier","pfmp1","pfmp2"]},
+];
+const CRIT2={
+  "C1.2":{atelier:[],pfmp1:["Identifier les différents acteurs"],pfmp2:["Identifier les différents acteurs"],dossier:["Qualité de restitution orale","Vocabulaire technique adapté"]},
+  "C3.1":{atelier:["Zone sécurisée","Outillage adapté","Zone rangée et propre"],pfmp1:["Zone sécurisée","Outillage correctement utilisé","Zone rangée"],pfmp2:["Zone sécurisée","Outillage correctement utilisé","Zone rangée"],dossier:[]},
+  "C3.2":{atelier:["Réseaux repérés","Sens de circulation identifiés"],pfmp1:["Réseaux repérés et étiquetés","Sens identifiés"],pfmp2:["Réseaux repérés et étiquetés","Sens identifiés"],dossier:[]},
+  "C3.3":{atelier:["Implantation conforme","Supports correctement posés"],pfmp1:["Tracés conformes","Implantation conforme","Gestes adaptés"],pfmp2:["Tracés conformes","Implantation conforme","Gestes adaptés"],dossier:[]},
+  "C3.4":{atelier:["Brasage fort étanche","Dudgeon/Flare conformes","Cintrage correct","Isolation continue"],pfmp1:["Raccordements conformes","Isolation continue"],pfmp2:["Raccordements conformes","Isolation continue"],dossier:[]},
+  "C3.5":{atelier:["Appareil réglé","Alignement/pointage","Métal d'apport adapté","Sertissage PER"],pfmp1:[],pfmp2:[],dossier:[]},
+  "C3.6":{atelier:["Conducteurs identifiés","Câblage puissance","Câblage commande","Câbles rangés et repérés"],pfmp1:["Connexions conformes","Éléments repérés"],pfmp2:["Connexions conformes","Éléments repérés"],dossier:[]},
+  "C3.7":{atelier:["Vérif. fluidique","Vérif. électrique"],pfmp1:["Vérif. fluidique","Vérif. électrique","Mise en service validée"],pfmp2:["Vérif. fluidique","Vérif. électrique","Mise en service validée"],dossier:[]},
+  "C3.8":{atelier:["Déchets stockés réglementairement"],pfmp1:["Déchets stockés","Documents transmis"],pfmp2:["Déchets stockés","Documents transmis"],dossier:[]},
+  "C3.9":{atelier:["Épreuve pression gaz","Étanchéité frigorifique"],pfmp1:["Épreuve pression gaz","Étanchéité frigorifique","Étanchéité hydraulique"],pfmp2:["Épreuve pression gaz","Étanchéité frigorifique","Étanchéité hydraulique"],dossier:[]},
+};
+const COMP_EP3=[
+  {code:"C4.1",nom:"Tirer au vide",   full:"Tirer au vide le circuit frigorifique",              obl:true, poids:2.5,sits:["A"]},
+  {code:"C4.2",nom:"Manipuler fluide",full:"Manipuler le fluide frigorigène et les huiles",       obl:true, poids:2.5,sits:["A"]},
+  {code:"C4.3",nom:"Étanchéité",      full:"Contrôler l'étanchéité d'un circuit",                obl:true, poids:2,  sits:["A","B"]},
+  {code:"C4.4",nom:"Identifier panne",full:"Identifier la panne",                                obl:false,poids:1,  sits:["B"]},
+  {code:"C4.5",nom:"Mesurer",         full:"Mesurer et comparer des grandeurs",                  obl:true, poids:2.5,sits:["A","B"]},
+  {code:"C4.6",nom:"Régler",          full:"Régler les organes de régulation",                   obl:true, poids:2,  sits:["A","B"]},
+  {code:"C4.7",nom:"Raccorder",       full:"Raccorder les équipements de charge et mesure",       obl:true, poids:2,  sits:["A"]},
+  {code:"C5.1",nom:"Remplacer",       full:"Remplacer un composant",                             obl:true, poids:2,  sits:["A"]},
+  {code:"C1.1",nom:"Compléter docs",  full:"Compléter et transmettre des documents",             obl:true, poids:1.5,sits:["C"]},
+];
+const CRIT3={
+  "C4.1":{A:["Groupe de tirage connecté correctement","Vide atteint (< 200 µm Hg)","Durée de pompage respectée"],B:[],C:[]},
+  "C4.2":{A:["EPI mis en place","Récupération fluide réalisée","Charge en phase liquide correcte"],B:[],C:[]},
+  "C4.3":{A:["Test d'étanchéité réalisé","Absence de fuite confirmée","Méthode conforme"],B:["Détecteur utilisé correctement","Fuite localisée"],C:[]},
+  "C4.4":{A:[],B:["Symptômes identifiés","Composant défectueux localisé","Cause racine déterminée"],C:[]},
+  "C4.5":{A:["Appareils de mesure connectés","Mesures relevées et consignées","Valeurs comparées aux données fabricant"],B:["Mesures pertinentes relevées","Comparaison à la norme"],C:[]},
+  "C4.6":{A:["Paramètres de régulation vérifiés","Réglages conformes"],B:["Paramètres ajustés après diagnostic"],C:[]},
+  "C4.7":{A:["Manomètres connectés correctement","Absence de fuite aux raccords","Déconnexion sans perte de fluide"],B:[],C:[]},
+  "C5.1":{A:["Composant remplacé correctement","Test de fonctionnement réalisé","Remise en service conforme"],B:[],C:[]},
+  "C1.1":{A:[],B:[],C:["Documents complétés correctement","Informations transmises au client","Vocabulaire technique adapté"]},
+};
+const SIT_INFO={
+  A:{nom:"Mise en service",duree:"40 min",comp:["C4.1","C4.2","C4.3","C4.5","C4.6","C4.7","C5.1"]},
+  B:{nom:"Maintenance / Dépannage",duree:"20 min",comp:["C4.3","C4.4","C4.5","C4.6"]},
+  C:{nom:"Communication / Documents",duree:"20 min",comp:["C1.1"]},
+};
+const COEF_OBL=1.2;
+const NV=['PM','M','EC','NE'];
+const NV_PCT={PM:100,M:70,EC:35,NE:0};
+const NV_LBL={PM:'Pleinement Maîtrisé',M:'Maîtrisé',EC:'En Cours',NE:'Non Évalué'};
+
+/* ═══ [B] ÉTAT GLOBAL ═══ */
+let cfg={},appCfg={};
+let students=[],validations={},notes={},pfmpData={},partenaires=[];
+let cur=null,curCtx='atelier',curSit='A',curPhase='formatif';
+let online=false,demoMode=false;
+const SK='inerweb-tt-prof-v4',SCFG='inerweb-tt-cfg',SPART='inerweb-tt-parts';
+
+/* ═══ [C] CORE ═══ */
+function cleanUrl(raw){
+  raw=raw.trim();
+  // Supprime tout protocole malformé et remet https://
+  raw=raw.replace(/^(https?:\/\/|script\.\w+\/\/|https?\/\/)/i,'');
+  // Supprime les doublons de domaine
+  const m=raw.match(/(script\.google\.com\/macros\/s\/[^?]+)/);
+  if(m)raw=m[1];
+  return 'https://'+raw;
+}
+function saveConfig(){
+  const url=cleanUrl(document.getElementById('cfgUrl').value);
+  const key=document.getElementById('cfgKey').value.trim();
+  const nom=document.getElementById('cfgNom').value.trim();
+  const base=document.getElementById('cfgBase').value.trim()||'https://frigorx.github.io/inerweb-tt/';
+  if(!url||!key||!nom){alert('URL API, clé et nom obligatoires.');return;}
+  cfg={apiUrl:url,apiKey:key,nomProf:nom,baseUrl:base};
+  localStorage.setItem(SCFG,JSON.stringify(cfg));
+  startApp();
+}
+function loadDemoMode(){
+  cfg={apiUrl:'',apiKey:'',nomProf:'F. Henninot (démo)',baseUrl:'https://frigorx.github.io/inerweb-tt/'};
+  demoMode=true; startApp();
+  setTimeout(()=>{loadDemoData();document.body.classList.add('demo-mode');},200);
+}
+function loadConfig(){const s=localStorage.getItem(SCFG);if(s){cfg=JSON.parse(s);return true;}return false;}
+function startApp(){
+  document.getElementById('screen-config').style.display='none';
+  document.getElementById('screen-app').style.display='flex';
+  document.body.classList.remove('show-config');
+  document.body.classList.add('show-app');
+  initApp();
+}
+function showConfigScreen(){
+  document.getElementById('screen-config').style.display='flex';
+  document.getElementById('screen-app').style.display='none';
+  document.body.classList.add('show-config');
+  document.body.classList.remove('show-app');
+}
+async function apiCall(params){
+  if(!cfg.apiUrl) throw new Error('no url');
+  const url=new URL(cfg.apiUrl);
+  params.key=cfg.apiKey;
+  Object.entries(params).forEach(([k,v])=>url.searchParams.set(k,typeof v==='object'?JSON.stringify(v):v));
+  const r=await fetch(url.toString(),{method:'GET',redirect:'follow'});
+  const d=await r.json();
+  if(d.error&&d.code===403) throw new Error('Accès refusé');
+  if(d.error) throw new Error(d.error);
+  return d;
+}
+function saveLocal(){
+  try{localStorage.setItem(SK,JSON.stringify({students,validations,notes,pfmpData,appCfg}));updateStor();}
+  catch(e){toast('Stockage local plein','err');}
+}
+function loadLocal(){
+  const d=localStorage.getItem(SK);
+  if(!d)return;
+  const p=JSON.parse(d);
+  students=p.students||[]; validations=p.validations||{}; notes=p.notes||{};
+  pfmpData=p.pfmpData||{}; appCfg=p.appCfg||{};
+  partenaires=JSON.parse(localStorage.getItem(SPART)||'[]');
+}
+async function syncAll(){
+  if(!cfg.apiUrl){setSyncState('error');return;}
+  setSyncState('syncing');
+  try{
+    const dash=await apiCall({action:'getDashboard'});
+    if(!Array.isArray(dash)) throw new Error('invalid');
+    students=dash;
+    validations={}; notes={};
+    await Promise.all(students.slice(0,30).map(async s=>{
+      try{
+        const[v,n]=await Promise.all([apiCall({action:'getValidations',eleve:s.code}),apiCall({action:'getNotes',eleve:s.code})]);
+        validations[s.code]=Array.isArray(v)?v:[];
+        const e2=Array.isArray(n)?n.find(x=>x.epreuve==='EP2'):null;
+        const e3=Array.isArray(n)?n.find(x=>x.epreuve==='EP3'):null;
+        notes[s.code]={EP2:e2||{},EP3:e3||{}};
+      }catch{validations[s.code]=[];notes[s.code]={EP2:{},EP3:{}};}
+    }));
+    online=true; saveLocal(); setSyncState('ok'); updateAll();
+    toast(`${students.length} élèves synchronisés`,'ok');
+  }catch(e){
+    online=false; setSyncState('error'); updateAll();
+    toast('Hors-ligne — données locales','warn');
+  }
+}
+function setSyncState(s){
+  const d=document.getElementById('syncDot'),l=document.getElementById('syncLbl');
+  if(!d)return;
+  d.className='sync-dot';
+  if(s==='ok'){l.textContent='Synchronisé';}
+  if(s==='syncing'){d.classList.add('syncing');l.textContent='Sync...';}
+  if(s==='error'){d.classList.add('offline');l.textContent='Hors-ligne';}
+}
+async function pushVal(data){
+  const entry={...data,evaluateur:cfg.nomProf||'Prof',timestamp:new Date().toISOString(),phase:curPhase};
+  if(!validations[cur]) validations[cur]=[];
+  validations[cur].push(entry); saveLocal(); toast('✓ Enregistré','ok');
+  if(online){try{await apiCall({action:'saveValidation',eleve:cur,data:entry});}catch{toast('En attente sync','warn');}}
+}
+
+/* ═══ [D] NAVIGATION ═══ */
+function switchTab(tab){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.querySelector(`.nav-btn[data-tab="${tab}"]`)?.classList.add('active');
+  if(tab==='dashboard')renderDash();
+  if(tab==='ep2'){popSelects();renderEP2();}
+  if(tab==='ep3'){popSelects();renderEP3();}
+  if(tab==='bilan'){popSelects();if(cur)renderBilan();}
+  if(tab==='stage')renderStage();
+  if(tab==='export')renderJournal();
+  if(tab==='eleves')renderEleves();
+}
+function selectStudent(code,ctx){
+  cur=code;
+  ['selEP2','selEP3','selBilan'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=code;});
+  if(ctx==='ep2')renderEP2();
+  if(ctx==='ep3')renderEP3();
+  if(ctx==='bilan')renderBilan();
+}
+function navStudent(dir,ctx){
+  if(!students.length)return;
+  const i=students.findIndex(s=>s.code===cur);
+  selectStudent(students[(i+dir+students.length)%students.length].code,ctx);
+}
+function popSelects(){
+  const html=students.map(s=>`<option value="${s.code}">${s.nom} ${s.prenom||''} — ${s.classe||''}</option>`).join('');
+  ['selEP2','selEP3','selBilan'].forEach(id=>{const e=document.getElementById(id);if(e)e.innerHTML=html||'<option>Aucun élève</option>';});
+  if(!cur&&students.length)cur=students[0].code;
+  if(cur)['selEP2','selEP3','selBilan'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=cur;});
+}
+function switchCtx(ctx){
+  curCtx=ctx;
+  document.querySelectorAll('.ctx-tab:not(.sit)').forEach(t=>t.classList.toggle('active',t.dataset.ctx===ctx));
+  renderEP2();
+}
+function switchSit(sit){
+  curSit=sit;
+  document.querySelectorAll('.ctx-tab.sit').forEach(t=>t.classList.toggle('active',t.dataset.sit===sit));
+  renderEP3();
+}
+function switchStagePanel(p){
+  document.querySelectorAll('.stage-panel').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.stage-tab').forEach(t=>t.classList.toggle('active',t.dataset.sp===p));
+  document.getElementById('sp-'+p)?.classList.add('active');
+  if(p==='partenaires')renderParts();
+  if(p==='comm')renderComm();
+}
+function setPhase(ph){
+  curPhase=ph;
+  document.getElementById('btnFormatif').className=ph==='formatif'?'btn btn-primary btn-sm':'btn btn-ghost btn-sm';
+  document.getElementById('btnCertif').className=ph==='certificatif'?'btn btn-orange btn-sm':'btn btn-ghost btn-sm';
+  toast('Phase : '+ph,'inf');
+}
+
+/* ═══ [E] DASHBOARD ═══ */
+function renderDash(){
+  const g=document.getElementById('dashGrid');
+  if(!students.length){
+    g.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="ei">👥</div><p>Aucun élève — ajoutez votre classe dans l\'onglet Élèves</p></div>';
+    ['statTotal','statAlertes','statClos','statActifs'].forEach(id=>document.getElementById(id).textContent='0');
+    return;
+  }
+  let al=0,cl=0,ac=0;
+  const cards=students.map(s=>{
+    const v=validations[s.code]||[];
+    const e2done=new Set(v.filter(x=>x.epreuve==='EP2').map(x=>x.competence)).size;
+    const e3done=new Set(v.filter(x=>x.epreuve==='EP3').map(x=>x.competence)).size;
+    const e2pct=Math.round(e2done/COMP_EP2.length*100);
+    const e3pct=Math.round(e3done/COMP_EP3.length*100);
+    const nE2=notes[s.code]?.EP2||{},nE3=notes[s.code]?.EP3||{};
+    const clos=nE2.cloture&&nE3.cloture;
+    const alerte=s.alerte&&!clos;
+    if(alerte)al++;if(clos)cl++;if(s.statut==='actif')ac++;
+    const cls=clos?'complet':alerte?'alerte':e2done>0?'en-cours':'';
+    return `<div class="sc ${cls}" onclick="goEval('${s.code}')">
+      <div class="sc-top">
+        <div><div class="sc-nom">${s.nom} ${s.prenom||''}</div><div class="sc-cls">${s.classe||'—'}</div></div>
+        <div style="text-align:right">
+          <span class="sc-code">${s.code}</span>
+          <div style="display:flex;gap:.2rem;flex-wrap:wrap;justify-content:flex-end;margin-top:.2rem">
+            ${nE2.cloture?'<span class="badge b-vert" style="font-size:.6rem">EP2✓</span>':''}
+            ${nE3.cloture?'<span class="badge b-vert" style="font-size:.6rem">EP3✓</span>':''}
+            ${alerte?'<span class="badge b-rouge" style="font-size:.6rem">⚠️</span>':''}
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="sc-bar-row"><span style="color:var(--ep2)">EP2</span><div class="sc-track"><div class="sc-fill f-ep2" style="width:${e2pct}%"></div></div><span>${e2done}/${COMP_EP2.length}</span></div>
+        <div class="sc-bar-row"><span style="color:var(--ep3)">EP3</span><div class="sc-track"><div class="sc-fill f-ep3" style="width:${e3pct}%"></div></div><span>${e3done}/${COMP_EP3.length}</span></div>
+      </div>
+      <div class="sc-bot">🕐 ${s.derniere_eval?dateFR(s.derniere_eval):'Jamais évalué'}${alerte?`<div class="sc-alerte">⚠️ ${s.alerte}</div>`:''}</div>
+    </div>`;
+  });
+  g.innerHTML=cards.join('');
+  document.getElementById('statTotal').textContent=students.length;
+  document.getElementById('statAlertes').textContent=al;
+  document.getElementById('statClos').textContent=cl;
+  document.getElementById('statActifs').textContent=ac;
+  // Badge alerte nav
+  const nb=document.querySelector('.nav-btn[data-tab="dashboard"]');
+  if(nb){nb.querySelector('.nav-badge')?.remove();if(al>0)nb.insertAdjacentHTML('beforeend',`<span class="nav-badge">${al}</span>`);}
+}
+function goEval(code){selectStudent(code,'ep2');switchTab('ep2');}
+
+/* ═══ [F] EP2 / EP3 ═══ */
+function renderEP2(){
+  const c=document.getElementById('ep2List');
+  if(!cur){c.innerHTML='<div class="alert al-warn">Sélectionnez un élève</div>';return;}
+  const comps=COMP_EP2.filter(x=>x.lieux.includes(curCtx));
+  c.innerHTML=comps.length?comps.map(x=>compBlock(x,'EP2',curCtx)).join(''):'<div class="alert al-info">Aucune compétence dans ce contexte</div>';
+}
+function renderEP3(){
+  const c=document.getElementById('ep3List');
+  if(!cur){c.innerHTML='<div class="alert al-warn">Sélectionnez un élève</div>';return;}
+  const sit=SIT_INFO[curSit];
+  document.getElementById('ep3Info').textContent=`Sit. ${curSit} — ${sit.nom} (${sit.duree}) · Compétences : ${sit.comp.join(', ')}`;
+  const comps=COMP_EP3.filter(x=>x.sits.includes(curSit));
+  c.innerHTML=comps.map(x=>compBlock(x,'EP3',curSit)).join('');
+  // Synthèse
+  const sg=document.getElementById('ep3SynthGrid');
+  document.getElementById('ep3Synth').style.display='';
+  sg.innerHTML=COMP_EP3.map(x=>{
+    const lv=getLv(cur,'EP3',x.code);
+    return `<span class="badge lv-${(lv||'ne').toLowerCase()}" style="cursor:pointer" onclick="switchSit('${x.sits[0]}')">${x.code} ${lv||'—'}</span>`;
+  }).join('');
+}
+function compBlock(comp,ep,ctx){
+  const lv=getLv(cur,ep,comp.code);
+  const lvcls='lv-'+(lv||'ne').toLowerCase();
+  const crits=ep==='EP2'?(CRIT2[comp.code]?.[ctx]||[]):(CRIT3[comp.code]?.[ctx]||[]);
+  const obs=getObs(cur,ep,comp.code);
+  const locked=notes[cur]?.[ep]?.cloture;
+  const critsHtml=crits.map(cr=>{
+    const cv=getVal(cur,ep,comp.code,cr);
+    const btns=NV.map(n=>`<button class="cb b-${n}${cv===n?' sel':''}" ${locked?'disabled':''} onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
+    return `<div class="crit-item"><span class="crit-nom">${cr}</span><div class="crit-btns">${btns}</div></div>`;
+  }).join('');
+  const gbBtns=NV.map(n=>`<button class="gb b-${n}${lv===n?' sel':''}" ${locked?'disabled':''} onclick="setLv('${comp.code}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
+  return `<div class="comp-block">
+    <div class="comp-hdr" onclick="toggleComp(this)">
+      <span class="comp-code">${comp.code}</span>
+      <span class="comp-nom">${comp.nom}</span>
+      ${comp.obl?'<span class="comp-oblig">✱</span>':''}
+      <span class="badge ${lvcls} comp-lv">${lv||'NE'}</span>
+      ${locked?'<span class="badge b-rouge">🔒</span>':''}
+      <span class="comp-arrow">▼</span>
+    </div>
+    <div class="comp-body">
+      <div class="comp-full">${comp.full}</div>
+      ${critsHtml?`<div class="crit-list">${critsHtml}</div>`:''}
+      <div class="comp-global"><span class="cg-lbl">Niveau global :</span><div class="gb-wrap">${gbBtns}</div></div>
+      <textarea class="obs-area" placeholder="Observation sur ${comp.code}..." rows="2" ${locked?'disabled':''} onblur="saveObs('${comp.code}','${ep}',this.value)">${obs}</textarea>
+    </div>
+  </div>`;
+}
+function toggleComp(h){const b=h.nextElementSibling;b.classList.toggle('open');h.classList.toggle('open');}
+function getVal(code,ep,comp,crit){
+  const v=(validations[code]||[]).filter(x=>x.epreuve===ep&&x.competence===comp&&x.critere===crit);
+  if(!v.length)return null;
+  return v.sort((a,b)=>String(b.timestamp||'').localeCompare(String(a.timestamp||'')))[0].niveau;
+}
+function getLv(code,ep,comp){
+  const v=(validations[code]||[]).filter(x=>x.epreuve===ep&&x.competence===comp&&(!x.critere||x.critere===''));
+  if(!v.length)return null;
+  return v.sort((a,b)=>String(b.timestamp||'').localeCompare(String(a.timestamp||'')))[0].niveau;
+}
+function getObs(code,ep,comp){
+  const v=(validations[code]||[]).filter(x=>x.epreuve===ep&&x.competence===comp&&x.critere==='__obs__');
+  if(!v.length)return'';
+  return v.sort((a,b)=>String(b.timestamp||'').localeCompare(String(a.timestamp||'')))[0].niveau||'';
+}
+async function setCrit(comp,critEnc,niv,ep){
+  if(notes[cur]?.[ep]?.cloture){toast('Épreuve clôturée','err');return;}
+  await pushVal({epreuve:ep,competence:comp,critere:decodeURIComponent(critEnc),niveau:niv,contexte:ep==='EP2'?curCtx:curSit});
+  if(ep==='EP2')renderEP2();else renderEP3();
+}
+async function setLv(comp,niv,ep){
+  if(notes[cur]?.[ep]?.cloture){toast('Épreuve clôturée','err');return;}
+  await pushVal({epreuve:ep,competence:comp,critere:'',niveau:niv,contexte:ep==='EP2'?curCtx:curSit});
+  if(ep==='EP2')renderEP2();else renderEP3();
+  renderDash();
+}
+async function saveObs(comp,ep,txt){
+  if(!txt.trim()||notes[cur]?.[ep]?.cloture)return;
+  await pushVal({epreuve:ep,competence:comp,critere:'__obs__',niveau:txt,contexte:''});
+}
+
+/* ═══ [G] STAGE ═══ */
+function renderStage(){renderSuivi();}
+function renderSuivi(){
+  const c=document.getElementById('stageList');
+  if(!students.length){c.innerHTML='<div class="empty"><div class="ei">🏢</div><p>Aucun élève</p></div>';return;}
+  c.innerHTML=students.map(s=>{
+    const pf=pfmpData[s.code]||{journal:[]};
+    return `<div class="se-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div><div class="se-nom">${s.nom} ${s.prenom||''}</div>
+          <div class="se-meta">${s.classe||''} · ${s.code}</div>
+          <div class="se-co">🏢 ${s.entreprise_nom||'—'} · 👤 ${s.tuteur_nom||'—'}</div>
+        </div>
+        <span class="j-count">📓 ${pf.journal.length} entrée${pf.journal.length!==1?'s':''}</span>
+      </div>
+      <div style="display:flex;gap:.3rem;flex-wrap:wrap;margin-top:.5rem">
+        <button class="btn btn-teal btn-xs" onclick="viewJournal('${s.code}')">📓 Journal</button>
+        <button class="btn btn-ghost btn-xs" onclick="showQR('${s.code}')">📱 QR élève+tuteur</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function viewJournal(code){
+  const s=students.find(x=>x.code===code)||{};
+  const pf=pfmpData[code]||{journal:[]};
+  const html=pf.journal.length
+    ?pf.journal.slice(-20).reverse().map(j=>`<div class="jentry"><span class="j-date">${dateFR(j.date||j.timestamp)}</span> · ${j.activite||''} — ${j.description||''}</div>`).join('')
+    :'<div class="alert al-info">Aucune entrée de journal</div>';
+  showModal(`📓 Journal — ${s.nom} ${s.prenom||''}`,html,'<button class="btn btn-ghost" onclick="closeModal()">Fermer</button>');
+}
+function renderParts(){
+  const c=document.getElementById('partList');
+  if(!partenaires.length){c.innerHTML='<div class="empty"><div class="ei">🏢</div><p>Aucun partenaire</p></div>';return;}
+  c.innerHTML=partenaires.map((p,i)=>`
+  <div class="part-card">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+      <div>
+        <div class="part-nom">${p.nom}</div>
+        <div class="part-sub">👤 ${p.tuteur||'—'} ${p.fonction?'· '+p.fonction:''}</div>
+        ${p.tel?`<div class="part-sub">📱 ${p.tel}</div>`:''}
+        ${p.email?`<div class="part-sub">✉️ ${p.email}</div>`:''}
+        <div class="stars">${'★'.repeat(p.etoiles||0)}${'☆'.repeat(5-(p.etoiles||0))}</div>
+      </div>
+      <div style="display:flex;gap:.25rem">
+        <button class="btn btn-rouge btn-xs" onclick="delPart(${i})">🗑️</button>
+      </div>
+    </div>
+    ${p.notes?`<div style="font-size:.72rem;color:var(--gris);margin-top:.4rem;font-style:italic">${p.notes}</div>`:''}
+  </div>`).join('');
+}
+function showAddPart(){
+  showModal('🏢 Nouveau partenaire',`
+    <div class="fr"><label>Nom entreprise</label><input id="pNom" placeholder="Climafroid SARL"></div>
+    <div class="grid2" style="margin-top:.5rem"><div class="fr"><label>Tuteur</label><input id="pTut" placeholder="Jean Martin"></div><div class="fr"><label>Fonction</label><input id="pFonc" placeholder="Chef d'atelier"></div></div>
+    <div class="grid2" style="margin-top:.5rem"><div class="fr"><label>Téléphone</label><input id="pTel" type="tel"></div><div class="fr"><label>Email</label><input id="pEmail" type="email"></div></div>
+    <div class="fr" style="margin-top:.5rem"><label>Qualité (étoiles 1-5)</label><input id="pEto" type="number" min="1" max="5" value="3"></div>
+    <div class="fr" style="margin-top:.5rem"><label>Notes internes</label><textarea id="pNotes" rows="2" style="width:100%;padding:.5rem;border:2px solid var(--gris3);border-radius:var(--r2);"></textarea></div>`,
+    `<button class="btn btn-teal" onclick="addPart()">➕ Ajouter</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+function addPart(){
+  partenaires.push({nom:document.getElementById('pNom').value.trim(),tuteur:document.getElementById('pTut').value.trim(),fonction:document.getElementById('pFonc').value.trim(),tel:document.getElementById('pTel').value.trim(),email:document.getElementById('pEmail').value.trim(),etoiles:parseInt(document.getElementById('pEto').value)||3,notes:document.getElementById('pNotes').value.trim()});
+  localStorage.setItem(SPART,JSON.stringify(partenaires));
+  closeModal();renderParts();toast('Partenaire ajouté','ok');
+}
+function delPart(i){partenaires.splice(i,1);localStorage.setItem(SPART,JSON.stringify(partenaires));renderParts();toast('Supprimé','inf');}
+const MSG_TPL={
+  bienvenue:`Bonjour,\nJe suis l'enseignant(e) référent(e) de votre stagiaire.\nL'évaluation se fait via ce lien : [lien tuteur]\nCordialement,`,
+  rappel:`Bonjour,\nUne évaluation des compétences est en attente.\nVotre lien : [lien tuteur]\nMerci,`,
+  alerte:`Bonjour,\nNous n'avons pas reçu de retour depuis quelques jours.\nPouvez-vous nous donner des nouvelles de votre stagiaire ?\nCordialement,`,
+};
+function prepMsg(t){document.getElementById('msgTpl').value=MSG_TPL[t]||'';}
+function renderComm(){
+  const c=document.getElementById('commList');
+  const msg=document.getElementById('msgTpl')?.value||'';
+  if(!students.length){c.innerHTML='<div class="alert al-info">Aucun élève chargé</div>';return;}
+  c.innerHTML=students.map(s=>{
+    const tutUrl=`${cfg.baseUrl||''}inerweb_tuteur.html?eleve=${s.code}&tuteur=${s.token_tuteur||''}`;
+    const m=msg.replace('[lien tuteur]',tutUrl);
+    return `<div style="display:flex;align-items:center;gap:.5rem;padding:.5rem;background:var(--gris2);border-radius:var(--r2);margin-bottom:.3rem;">
+      <div style="flex:1"><div style="font-weight:700;font-size:.8rem">${s.nom} ${s.prenom||''}</div><div style="font-size:.65rem;color:var(--gris)">${s.tuteur_nom||'Tuteur non défini'}</div></div>
+      <a class="btn btn-ghost btn-xs" href="https://wa.me/?text=${encodeURIComponent(m)}" target="_blank">💬 WA</a>
+      ${s.tuteur_email?`<a class="btn btn-ghost btn-xs" href="mailto:${s.tuteur_email}?subject=Stage%20${encodeURIComponent(s.nom)}&body=${encodeURIComponent(m)}">✉️</a>`:''}
+    </div>`;
+  }).join('')||'<div class="alert al-warn">Aucun tuteur avec coordonnées</div>';
+}
+
+/* ═══ [H] BILAN ═══ */
+function calcNote(code,ep){
+  const comps=ep==='EP2'?COMP_EP2:COMP_EP3;
+  let tot=0,max=0;
+  const det=comps.map(c=>{
+    const lv=getLv(code,ep,c.code)||'NE';
+    const coef=c.obl?COEF_OBL:1;
+    const pts=Math.round((NV_PCT[lv]||0)*c.poids*coef)/100;
+    const mx=c.poids*coef;
+    tot+=pts;max+=mx;
+    return{code:c.code,nom:c.nom,obl:c.obl,lv,pts:pts.toFixed(1),max:mx.toFixed(1)};
+  });
+  const note=max?Math.round(tot/max*20*10)/10:0;
+  return{note,elig:note>=10,det,tot:tot.toFixed(1),max:max.toFixed(1)};
+}
+function renderBilan(){
+  const c=document.getElementById('bilanContent');
+  if(!cur){c.innerHTML='<div class="empty"><div class="ei">🏆</div><p>Sélectionnez un élève</p></div>';return;}
+  const s=students.find(x=>x.code===cur)||{};
+  const e2=calcNote(cur,'EP2'),e3=calcNote(cur,'EP3');
+  const n2=notes[cur]?.EP2||{},n3=notes[cur]?.EP3||{};
+  c.innerHTML=`
+  <div class="card">
+    <div class="card-title">🏆 Bilan — ${s.nom||''} ${s.prenom||''} <span style="font-size:.72rem;color:var(--gris);font-weight:600">${s.classe||''}</span></div>
+    <div class="bilan-notes">
+      <div class="bn-card" style="border-top:4px solid var(--ep2)">
+        <div class="bn-lbl" style="color:var(--ep2)">EP2 — Réalisation (coeff. 6)</div>
+        <div class="bn-big" style="color:var(--ep2)">${e2.note}<span style="font-size:1rem;font-weight:600;color:var(--gris)">/20</span></div>
+        <div class="bn-sub">${e2.tot} pts / ${e2.max}</div>
+        <div style="font-size:.72rem;margin:.3rem 0;color:${e2.elig?'var(--vert)':'var(--rouge)'};">${e2.elig?'✅ Éligible':'⚠️ Non éligible'}</div>
+        ${n2.cloture?'<div style="font-size:.65rem;background:var(--vert2);color:var(--vert);border-radius:6px;padding:.2rem .5rem;font-weight:700">🔒 Clôturé</div>':''}
+        <div style="margin-top:.6rem">
+          <div style="font-size:.7rem;font-weight:700;color:var(--gris);margin-bottom:.25rem">Note jury :</div>
+          <div style="display:flex;align-items:center;gap:.4rem;justify-content:center">
+            <input type="number" id="nfEP2" min="0" max="20" step="0.5" value="${n2.note_finale!=null?n2.note_finale:''}" placeholder="${e2.note}" ${n2.cloture?'disabled':''} style="width:60px;text-align:center;font-size:1rem;font-weight:800;padding:.3rem;border:2px solid var(--gris3);border-radius:var(--r2);">
+            <span style="font-size:.7rem">/20</span>
+            <button class="btn btn-primary btn-xs" onclick="valNote('EP2')" ${n2.cloture?'disabled':''}>✅</button>
+          </div>
+        </div>
+      </div>
+      <div class="bn-card" style="border-top:4px solid var(--ep3)">
+        <div class="bn-lbl" style="color:var(--ep3)">EP3 — Entretien (coeff. 4)</div>
+        <div class="bn-big" style="color:var(--ep3)">${e3.note}<span style="font-size:1rem;font-weight:600;color:var(--gris)">/20</span></div>
+        <div class="bn-sub">${e3.tot} pts / ${e3.max}</div>
+        <div style="font-size:.72rem;margin:.3rem 0;color:${e3.elig?'var(--vert)':'var(--rouge)'};">${e3.elig?'✅ Éligible':'⚠️ Non éligible'}</div>
+        ${n3.cloture?'<div style="font-size:.65rem;background:var(--vert2);color:var(--vert);border-radius:6px;padding:.2rem .5rem;font-weight:700">🔒 Clôturé</div>':''}
+        <div style="margin-top:.6rem">
+          <div style="font-size:.7rem;font-weight:700;color:var(--gris);margin-bottom:.25rem">Note jury :</div>
+          <div style="display:flex;align-items:center;gap:.4rem;justify-content:center">
+            <input type="number" id="nfEP3" min="0" max="20" step="0.5" value="${n3.note_finale!=null?n3.note_finale:''}" placeholder="${e3.note}" ${n3.cloture?'disabled':''} style="width:60px;text-align:center;font-size:1rem;font-weight:800;padding:.3rem;border:2px solid var(--gris3);border-radius:var(--r2);">
+            <span style="font-size:.7rem">/20</span>
+            <button class="btn btn-violet btn-xs" onclick="valNote('EP3')" ${n3.cloture?'disabled':''}>✅</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:.75rem;font-weight:800;color:var(--ep2);margin-bottom:.35rem">Détail EP2</div>${bilanTable(e2.det)}
+    <div style="font-size:.75rem;font-weight:800;color:var(--ep3);margin:.75rem 0 .35rem">Détail EP3</div>${bilanTable(e3.det)}
+    <div class="cloture-bar">
+      ${n2.cloture?`<button class="btn btn-ghost btn-sm" onclick="devrouille('EP2')">🔓 Déverrouiller EP2</button>`:`<button class="btn btn-vert btn-sm" onclick="cloture('EP2')">🔒 Clôturer EP2</button>`}
+      ${n3.cloture?`<button class="btn btn-ghost btn-sm" onclick="devrouille('EP3')">🔓 Déverrouiller EP3</button>`:`<button class="btn btn-violet btn-sm" onclick="cloture('EP3')">🔒 Clôturer EP3</button>`}
+      <button class="btn btn-orange btn-sm" onclick="exportStudentPDF()">📄 PDF fiche</button>
+    </div>
+  </div>`;
+}
+function bilanTable(det){
+  const rows=det.map(d=>{
+    const cls={PM:'color:var(--vert)',M:'color:var(--bleu2)',EC:'color:var(--jaune)',NE:'color:var(--gris)'}[d.lv]||'';
+    return `<tr><td><strong>${d.code}</strong></td><td>${d.nom}${d.obl?' <span style="color:var(--orange);font-size:.6rem">✱</span>':''}</td><td style="${cls};font-weight:800">${d.lv}</td><td>${d.pts}/${d.max}</td></tr>`;
+  }).join('');
+  return `<table class="bilan-table"><thead><tr><th>Code</th><th>Compétence</th><th>Niveau</th><th>Pts</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+async function valNote(ep){
+  const val=parseFloat(document.getElementById('nf'+ep).value);
+  if(isNaN(val)||val<0||val>20){toast('Note invalide (0-20)','err');return;}
+  if(!notes[cur])notes[cur]={EP2:{},EP3:{}};
+  const e=calcNote(cur,ep);
+  notes[cur][ep]={...notes[cur][ep],note_proposee:e.note,note_finale:val,eligible:e.elig,evaluateur:cfg.nomProf};
+  saveLocal();toast(`Note ${ep} validée : ${val}/20`,'ok');
+  if(online){try{await apiCall({action:'saveNote',eleve:cur,data:{epreuve:ep,...notes[cur][ep]}});}catch{}}
+  renderBilan();
+}
+async function cloture(ep){
+  if(!notes[cur])notes[cur]={EP2:{},EP3:{}};
+  const e=calcNote(cur,ep);
+  notes[cur][ep]={...notes[cur][ep],note_proposee:e.note,eligible:e.elig,cloture:true,evaluateur:cfg.nomProf};
+  saveLocal();toast(`${ep} clôturée`,'ok');
+  if(online){try{await apiCall({action:'cloturerEpreuve',eleve:cur,data:{epreuve:ep,...notes[cur][ep]}});}catch{}}
+  renderBilan();renderDash();
+}
+function devrouille(ep){
+  showModal(`🔓 Déverrouiller ${ep}`,
+    `<div class="alert al-warn">⚠️ Cette action réouvre l'évaluation.</div><div class="fr"><label>Motif obligatoire</label><textarea id="motif" rows="2" style="width:100%;padding:.5rem;border:2px solid var(--gris3);border-radius:var(--r2);"></textarea></div>`,
+    `<button class="btn btn-rouge" onclick="doDevrouille('${ep}')">🔓 Confirmer</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+async function doDevrouille(ep){
+  const m=document.getElementById('motif')?.value?.trim();
+  if(!m){toast('Motif obligatoire','err');return;}
+  if(!notes[cur])notes[cur]={EP2:{},EP3:{}};
+  notes[cur][ep]={...notes[cur][ep],cloture:false};
+  saveLocal();closeModal();toast(`${ep} déverrouillée`,'warn');
+  if(online){try{await apiCall({action:'deverrouillerEpreuve',eleve:cur,data:{epreuve:ep,motif:m,evaluateur:cfg.nomProf}});}catch{}}
+  renderBilan();renderDash();
+}
+
+/* ═══ [I] ÉLÈVES ═══ */
+function renderEleves(){
+  const c=document.getElementById('elevesList');
+  if(!students.length){c.innerHTML='<div class="empty"><div class="ei">👥</div><p>Aucun élève. Ajoutez votre classe.</p></div>';return;}
+  c.innerHTML=students.map(s=>`
+  <div class="el-row">
+    <div class="el-av">${(s.nom||'?')[0]}${s.prenom?s.prenom[0]:''}</div>
+    <div style="flex:1;cursor:pointer" onclick="goEval('${s.code}')">
+      <div class="el-nom">${s.nom} ${s.prenom||''}</div>
+      <div class="el-meta">${s.classe||'—'} · <span style="font-family:'JetBrains Mono',monospace;font-size:.65rem">${s.code}</span></div>
+    </div>
+    <div class="el-act">
+      <button class="btn btn-ghost btn-xs" onclick="showQR('${s.code}')">📱</button>
+      <button class="btn btn-rouge btn-xs" onclick="confirmDel('${s.code}')">🗑️</button>
+    </div>
+  </div>`).join('');
+  updateStor();
+}
+function showAddEleve(){
+  showModal('➕ Ajouter un élève',`
+    <div class="grid2"><div class="fr"><label>Nom</label><input id="aNom" placeholder="DUPONT"></div><div class="fr"><label>Prénom</label><input id="aPrenom" placeholder="Martin"></div></div>
+    <div class="fr" style="margin-top:.5rem"><label>Classe</label><select id="aClasse"><option>CAP IFCA 1</option><option>CAP IFCA 2</option><option>2nde TNE</option><option>1ère MFER</option><option>Term MFER</option></select></div>
+    <div class="grid2" style="margin-top:.5rem"><div class="fr"><label>PFMP 1 (semaines)</label><input type="number" id="aPfmp1" value="3" min="1" max="8"></div><div class="fr"><label>PFMP 2 (semaines)</label><input type="number" id="aPfmp2" value="3" min="1" max="8"></div></div>`,
+    `<button class="btn btn-primary" onclick="doAddEleve()">✅ Ajouter</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+async function doAddEleve(){
+  const nom=document.getElementById('aNom').value.trim().toUpperCase();
+  const prenom=document.getElementById('aPrenom').value.trim();
+  const classe=document.getElementById('aClasse').value;
+  if(!nom){toast('Nom obligatoire','err');return;}
+  closeModal();showSpinner();
+  try{
+    const r=await apiCall({action:'addEleve',data:{nom,prenom,classe,referentiel:'CAP_IFCA',pfmp1_sem:parseInt(document.getElementById('aPfmp1')?.value)||3,pfmp2_sem:parseInt(document.getElementById('aPfmp2')?.value)||3}});
+    await syncAll();toast(`${nom} ajouté · ${r.code}`,'ok');
+  }catch{
+    const code='ELV-'+String(students.length+1).padStart(3,'0');
+    students.push({code,nom,prenom,classe,statut:'actif',referentiel:'CAP_IFCA',token_eleve:Math.random().toString(36).substring(2,10).toUpperCase(),token_tuteur:Math.random().toString(36).substring(2,10).toUpperCase()});
+    saveLocal();updateAll();toast(`${nom} ajouté localement (sync en attente)`,'warn');
+  }finally{hideSpinner();}
+}
+function confirmDel(code){
+  const s=students.find(x=>x.code===code);if(!s)return;
+  showModal('🗑️ Supprimer',`<p>Supprimer <strong>${s.nom} ${s.prenom||''}</strong> (${code}) ?</p><div class="alert al-danger" style="margin-top:.5rem">⚠️ Action irréversible.</div>`,
+    `<button class="btn btn-rouge" onclick="doDel('${code}')">Oui, supprimer</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+async function doDel(code){
+  closeModal();showSpinner();
+  try{await apiCall({action:'deleteEleve',eleve:code});await syncAll();toast('Élève supprimé','ok');}
+  catch{students=students.filter(s=>s.code!==code);saveLocal();updateAll();toast('Supprimé localement','warn');}
+  finally{hideSpinner();}
+}
+function handleImportFile(file){
+  if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='csv'){const r=new FileReader();r.onload=e=>importCSV(e.target.result);r.readAsText(file,'UTF-8');}
+  else{const r=new FileReader();r.onload=e=>{const wb=XLSX.read(e.target.result,{type:'array'});importRows(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]));};r.readAsArrayBuffer(file);}
+}
+function importCSV(txt){
+  const lines=txt.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(lines.length<2)return;
+  const hdr=lines[0].split(/[,;]/).map(h=>h.trim().toLowerCase());
+  importRows(lines.slice(1).map(l=>{const v=l.split(/[,;]/);const o={};hdr.forEach((h,i)=>o[h]=(v[i]||'').trim());return o;}));
+}
+async function importRows(rows){
+  let n=0;showSpinner();
+  for(const r of rows){
+    const nom=(r['nom']||r['NOM']||r['Nom']||'').toUpperCase().trim();
+    const prenom=(r['prenom']||r['PRENOM']||r['prénom']||'').trim();
+    if(!nom||students.find(s=>s.nom===nom&&s.prenom===prenom))continue;
+    try{await apiCall({action:'addEleve',data:{nom,prenom,classe:r['classe']||'CAP IFCA 1',referentiel:'CAP_IFCA'}});n++;}
+    catch{const code='ELV-'+String(students.length+1).padStart(3,'0');students.push({code,nom,prenom,classe:r['classe']||'CAP IFCA 1',statut:'actif',referentiel:'CAP_IFCA',token_eleve:Math.random().toString(36).substring(2,10).toUpperCase(),token_tuteur:Math.random().toString(36).substring(2,10).toUpperCase()});n++;}
+  }
+  saveLocal();await syncAll();hideSpinner();toast(`${n} élève(s) importé(s)`,'ok');
+}
+function showQR(code){
+  const s=students.find(x=>x.code===code)||{nom:'?',prenom:''};
+  const base=cfg.baseUrl||'';
+  const ue=`${base}inerweb_eleve.html?eleve=${code}&token=${s.token_eleve||'TOKEN'}`;
+  const ut=`${base}inerweb_tuteur.html?eleve=${code}&tuteur=${s.token_tuteur||'TUTEUR'}`;
+  showModal(`📱 QR Codes — ${s.nom} ${s.prenom||''}`,`
+  <div class="qr-wrap">
+    <div class="qr-item"><div class="qr-lbl">📱 Lien élève</div><div id="qre" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${ue}</div></div>
+    <div class="qr-item"><div class="qr-lbl">🏢 Lien tuteur</div><div id="qrt" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${ut}</div></div>
+  </div>`,'<button class="btn btn-ghost" onclick="closeModal()">Fermer</button>');
+  setTimeout(()=>{
+    try{new QRCode(document.getElementById('qre'),{text:ue,width:130,height:130});new QRCode(document.getElementById('qrt'),{text:ut,width:130,height:130});}
+    catch{document.getElementById('qre').textContent=ue;document.getElementById('qrt').textContent=ut;}
+  },100);
+}
+function showQRAll(){
+  if(!students.length){toast('Aucun élève','warn');return;}
+  // Génère un PDF A4 avec tous les QR codes (2 par ligne)
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const base=cfg.baseUrl||'https://frigorx.github.io/inerweb-tt/';
+  let x=10,y=15,col=0;
+  // En-tête
+  doc.setFillColor(27,58,99);doc.rect(0,0,210,14,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont('helvetica','bold');
+  doc.text('inerWeb TT 4.0 — Badges QR élèves & tuteurs',10,9);
+  doc.setFontSize(7);doc.setFont('helvetica','normal');
+  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} · ${appCfg.etablissement||'Campus Equatio'}`,130,9);
+  y=20;
+  // Canvas temporaire pour générer QR en base64
+  const genQRDataUrl=(text)=>new Promise(resolve=>{
+    const div=document.createElement('div');div.style.cssText='position:fixed;left:-9999px;top:-9999px';
+    document.body.appendChild(div);
+    try{
+      const qr=new QRCode(div,{text,width:120,height:120,correctLevel:QRCode.CorrectLevel.M});
+      setTimeout(()=>{
+        const img=div.querySelector('img')||div.querySelector('canvas');
+        const url=img?(img.src||img.toDataURL()):'';
+        div.remove();resolve(url);
+      },150);
+    }catch{div.remove();resolve('');}
+  });
+  (async()=>{
+    showSpinner();
+    for(const s of students){
+      const ue=`${base}inerweb_eleve.html?eleve=${s.code}&token=${s.token_eleve}`;
+      const ut=`${base}inerweb_tuteur.html?eleve=${s.code}&tuteur=${s.token_tuteur}`;
+      // Carte élève (col gauche ou droite)
+      const bx=col===0?10:110;
+      doc.setDrawColor(200,200,200);doc.roundedRect(bx,y,90,52,3,3,'S');
+      doc.setFillColor(45,90,140);doc.roundedRect(bx,y,90,8,3,3,'F');
+      doc.setTextColor(255,255,255);doc.setFontSize(7);doc.setFont('helvetica','bold');
+      doc.text(`${s.nom} ${s.prenom||''}`,bx+2,y+5.5);
+      doc.setFontSize(6);doc.setFont('helvetica','normal');doc.text(s.classe||'',bx+60,y+5.5);
+      // QR élève
+      const qe=await genQRDataUrl(ue);
+      if(qe)doc.addImage(qe,'PNG',bx+2,y+10,25,25);
+      doc.setTextColor(45,90,140);doc.setFontSize(6);doc.setFont('helvetica','bold');doc.text('📱 Élève',bx+28,y+14);
+      doc.setTextColor(80,80,80);doc.setFont('helvetica','normal');doc.setFontSize(5);
+      doc.text(ue.replace('https://',''),bx+28,y+19,{maxWidth:58});
+      // QR tuteur
+      const qt=await genQRDataUrl(ut);
+      if(qt)doc.addImage(qt,'PNG',bx+2,y+36,20,20);
+      doc.setTextColor(22,160,133);doc.setFontSize(6);doc.setFont('helvetica','bold');doc.text('🏢 Tuteur',bx+24,y+40);
+      doc.setTextColor(80,80,80);doc.setFont('helvetica','normal');doc.setFontSize(5);
+      doc.text(ut.replace('https://',''),bx+24,y+45,{maxWidth:62});
+      col++;
+      if(col===2){col=0;y+=58;if(y>260&&students.indexOf(s)<students.length-1){doc.addPage();y=15;}}
+    }
+    doc.save(`Badges_QR_${appCfg.session||2026}.pdf`);
+    hideSpinner();toast('PDF badges généré','ok');
+  })();
+}
+
+/* ═══ [J] EXPORT ═══ */
+async function exportStudentPDF(){
+  if(!cur){toast('Sélectionnez un élève','warn');return;}
+  const s=students.find(x=>x.code===cur)||{};
+  const e2=calcNote(cur,'EP2'),e3=calcNote(cur,'EP3');
+  const n2=notes[cur]?.EP2||{},n3=notes[cur]?.EP3||{};
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  let y=15;
+  doc.setFillColor(27,58,99);doc.rect(0,0,210,22,'F');
+  doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont('helvetica','bold');
+  doc.text('inerWeb TT 4.0 — Rapport CCF',10,10);
+  doc.setFontSize(8);doc.setFont('helvetica','normal');
+  doc.text(`${appCfg.etablissement||'Campus Equatio'} · ${appCfg.ville||'Marseille'} · Session ${appCfg.session||2026}`,10,17);
+  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} par ${cfg.nomProf||'Enseignant'}`,130,17);
+  y=30;
+  doc.setTextColor(27,58,99);doc.setFontSize(14);doc.setFont('helvetica','bold');
+  doc.text(`${s.nom||''} ${s.prenom||''}`,10,y);y+=6;
+  doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);
+  doc.text(`${s.classe||''} · Code : ${s.code||''} · Référentiel : CAP IFCA`,10,y);y+=10;
+  const drawBox=(lbl,e,n,x,by,col)=>{
+    doc.setFillColor(...col);doc.rect(x,by,88,18,'F');
+    doc.setTextColor(255,255,255);doc.setFontSize(7);doc.setFont('helvetica','bold');doc.text(lbl,x+2,by+5);
+    doc.setFontSize(16);doc.text(`${n.note_finale!=null?n.note_finale:e.note}/20`,x+2,by+14);
+    doc.setFontSize(7);doc.setFont('helvetica','normal');doc.text(`Proposé: ${e.note}/20 · ${e.elig?'Éligible':'Non éligible'}`,x+35,by+10);
+    if(n.cloture)doc.text('✓ Clôturé',x+35,by+14);
+  };
+  drawBox('EP2 — Réalisation installation (coeff. 6)',e2,n2,10,y,[45,90,140]);
+  drawBox('EP3 — Entretien et mise en service (coeff. 4)',e3,n3,110,y,[142,68,173]);
+  y+=25;
+  const drawTable=(title,det,ty,col)=>{
+    doc.setFillColor(...col);doc.rect(10,ty,190,7,'F');
+    doc.setTextColor(255,255,255);doc.setFontSize(8);doc.setFont('helvetica','bold');doc.text(title,13,ty+5);ty+=9;
+    doc.setFontSize(7);doc.setFont('helvetica','normal');
+    det.forEach(d=>{
+      const lc={PM:[27,174,96],M:[45,90,140],EC:[243,156,18],NE:[150,150,150]}[d.lv]||[150,150,150];
+      doc.setTextColor(0,0,0);doc.text(d.code,12,ty+4);doc.text(d.nom+(d.obl?' ✱':''),30,ty+4);
+      doc.setTextColor(...lc);doc.setFont('helvetica','bold');doc.text(d.lv,130,ty+4);
+      doc.setFont('helvetica','normal');doc.setTextColor(100,100,100);doc.text(`${d.pts}/${d.max}`,150,ty+4);
+      doc.setDrawColor(220,220,220);doc.line(10,ty+6,200,ty+6);ty+=6;
+    });
+    return ty+5;
+  };
+  y=drawTable('EP2 — Réalisation installation',e2.det,y,[45,90,140]);
+  if(y>220){doc.addPage();y=15;}
+  drawTable('EP3 — Entretien et mise en service',e3.det,y,[142,68,173]);
+  const pc=doc.getNumberOfPages();
+  for(let i=1;i<=pc;i++){doc.setPage(i);doc.setFontSize(7);doc.setTextColor(150,150,150);doc.text('inerWeb TT 4.0 — Note proposée par le moteur, validée par le jury',10,290);doc.text(`Page ${i}/${pc}`,180,290);}
+  doc.save(`CCF_${s.nom}_${s.prenom||''}_${cur}.pdf`);
+  toast('PDF généré','ok');
+}
+async function exportAllPDF(){
+  if(!students.length){toast('Aucun élève','warn');return;}
+  const orig=cur;
+  let ok=0,err=0;
+  showSpinner();
+  for(const s of students){
+    try{cur=s.code;await exportStudentPDF();ok++;}
+    catch{err++;}
+    // Petite pause entre chaque PDF pour éviter que le navigateur bloque
+    await new Promise(r=>setTimeout(r,400));
+  }
+  cur=orig;hideSpinner();
+  toast(`${ok} PDF générés${err?' · '+err+' erreur(s)':''}`,err?'warn':'ok');
+}
+function exportExcel(){
+  const rows=[['Code','Nom','Prénom','Classe','Note EP2 proposée','Note EP2 finale','Note EP3 proposée','Note EP3 finale','EP2 clôturé','EP3 clôturé']];
+  students.forEach(s=>{const e2=calcNote(s.code,'EP2'),e3=calcNote(s.code,'EP3'),n2=notes[s.code]?.EP2||{},n3=notes[s.code]?.EP3||{};rows.push([s.code,s.nom,s.prenom||'',s.classe||'',e2.note,n2.note_finale||'',e3.note,n3.note_finale||'',n2.cloture?'Oui':'Non',n3.cloture?'Oui':'Non']);});
+  const ws=XLSX.utils.aoa_to_sheet(rows),wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'CCF');XLSX.writeFile(wb,`CCF_Recap_${appCfg.session||2026}.xlsx`);
+  toast('Excel généré','ok');
+}
+function exportBackup(){
+  const data={version:'TT-4.0',timestamp:new Date().toISOString(),cfg:appCfg,students,validations,notes,pfmpData};
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));
+  a.download=`inerweb_backup_${new Date().toISOString().slice(0,10)}.json`;a.click();
+  toast('Backup JSON exporté','ok');
+}
+function handleRestore(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{try{
+    const d=JSON.parse(e.target.result);
+    if(d.config&&!d.version){migrateV10(d);toast('Données v10 migrées','ok');return;}
+    if(d.students)students=d.students;if(d.validations)validations=d.validations;
+    if(d.notes)notes=d.notes;if(d.pfmpData)pfmpData=d.pfmpData;if(d.cfg)appCfg=d.cfg;
+    saveLocal();updateAll();toast(`Backup ${d.version||''} restauré`,'ok');
+  }catch{toast('Fichier invalide','err');}};
+  r.readAsText(file);
+}
+function migrateV10(d){
+  // Migration des élèves
+  if(d.students)students=d.students.map(s=>({
+    code:s.id||('ELV-'+Math.random().toString(36).substring(2,6).toUpperCase()),
+    nom:s.nom||'',prenom:s.prenom||'',classe:s.classe||'CAP IFCA 1',
+    statut:'actif',referentiel:'CAP_IFCA',
+    token_eleve:Math.random().toString(36).substring(2,10).toUpperCase(),
+    token_tuteur:Math.random().toString(36).substring(2,10).toUpperCase(),
+  }));
+  // Migration des validations v10
+  if(d.evaluations||d.validations){
+    const src=d.evaluations||d.validations;
+    Object.entries(src).forEach(([code,vals])=>{
+      validations[code]=(Array.isArray(vals)?vals:[]).map(v=>({
+        epreuve:   v.epreuve||'EP2',
+        competence:v.competence||v.comp||'',
+        critere:   v.critere||'',
+        niveau:    v.niveau||v.level||'NE',
+        contexte:  v.contexte||v.ctx||'atelier',
+        phase:     v.phase||'formatif',
+        evaluateur:v.evaluateur||'Migration v10',
+        timestamp: v.timestamp||new Date().toISOString(),
+      }));
+    });
+  }
+  // Migration des notes v10
+  if(d.notes){
+    Object.entries(d.notes).forEach(([code,n])=>{
+      notes[code]={
+        EP2:{note_finale:n.EP2?.note_finale??null,cloture:n.EP2?.cloture??false},
+        EP3:{note_finale:n.EP3?.note_finale??null,cloture:n.EP3?.cloture??false},
+      };
+    });
+  }
+  saveLocal();updateAll();
+  toast(`Migration v10 : ${students.length} élève(s), ${Object.keys(validations).length} dossier(s)`,'ok');
+}
+function handleFusion(file){
+  if(!file)return;
+  const r=new FileReader();
+  r.onload=e=>{try{
+    const d=JSON.parse(e.target.result);
+    let n=0,skip=0;
+    if(d.validations)Object.entries(d.validations).forEach(([code,vals])=>{
+      if(!validations[code])validations[code]=[];
+      (Array.isArray(vals)?vals:[]).forEach(v=>{
+        // Clé de déduplication robuste : epreuve+competence+critere+contexte+phase+evaluateur
+        // On ne duplique pas si même évaluateur a déjà noté la même compétence dans le même contexte
+        const key=`${v.epreuve}|${v.competence}|${v.critere||''}|${v.contexte||''}|${v.phase||''}|${v.evaluateur||''}`;
+        const exists=validations[code].some(x=>{
+          const xk=`${x.epreuve}|${x.competence}|${x.critere||''}|${x.contexte||''}|${x.phase||''}|${x.evaluateur||''}`;
+          return xk===key;
+        });
+        if(!exists){validations[code].push(v);n++;}
+        else skip++;
+      });
+    });
+    saveLocal();updateAll();
+    toast(`Fusion : ${n} ajoutée(s), ${skip} doublon(s) ignoré(s)`,'ok');
+  }catch{toast('Fichier fusion invalide','err');}};
+  r.readAsText(file);
+}
+function renderJournal(){
+  const c=document.getElementById('journalGlobal');
+  const all=[];
+  Object.entries(validations).forEach(([code,vals])=>{
+    const s=students.find(x=>x.code===code);
+    (Array.isArray(vals)?vals:[]).forEach(v=>{if(v.epreuve&&v.competence&&v.niveau&&v.timestamp)all.push({...v,eNom:s?`${s.nom} ${s.prenom||''}`:code});});
+  });
+  all.sort((a,b)=>String(b.timestamp||'').localeCompare(String(a.timestamp||'')));
+  c.innerHTML=all.slice(0,50).map(j=>`<div class="jentry ${j.phase||''}"><span class="j-date">${dateFR(j.timestamp)}</span> · <strong style="color:var(--bleu2)">${j.eNom}</strong> · ${j.epreuve} ${j.competence} → <strong>${j.niveau}</strong></div>`).join('')||'<div class="alert al-info">Aucune action</div>';
+}
+function confirmPurge(){
+  showModal('🗑️ Purger',`<div class="alert al-danger">⚠️ Efface TOUTES les données locales. Le cloud n'est pas affecté.</div>`,
+    `<button class="btn btn-rouge" onclick="localStorage.removeItem('${SK}');closeModal();location.reload()">Oui, tout effacer</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+
+/* ═══ [K] CONFIG APP ═══ */
+function showParamModal(){
+  showModal('⚙️ Connexion API',`
+    <div class="fr"><label>URL API</label><input id="pmUrl" value="${cfg.apiUrl||''}"></div>
+    <div class="fr" style="margin-top:.5rem"><label>Clé maître</label><input type="password" id="pmKey" value="${cfg.apiKey||''}"></div>
+    <div class="fr" style="margin-top:.5rem"><label>Votre nom</label><input id="pmNom" value="${cfg.nomProf||''}"></div>
+    <div class="fr" style="margin-top:.5rem"><label>URL GitHub Pages</label><input id="pmBase" value="${cfg.baseUrl||''}"></div>`,
+    `<button class="btn btn-primary" onclick="updateParam()">💾 Enregistrer</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+function updateParam(){
+  cfg.apiUrl=cleanUrl(document.getElementById('pmUrl').value);cfg.apiKey=document.getElementById('pmKey').value.trim();
+  cfg.nomProf=document.getElementById('pmNom').value.trim();cfg.baseUrl=document.getElementById('pmBase').value.trim();
+  localStorage.setItem(SCFG,JSON.stringify(cfg));closeModal();toast('Paramètres enregistrés','ok');syncAll();
+}
+function saveAppConfig(){
+  appCfg.etablissement=document.getElementById('cEtab').value.trim();
+  appCfg.ville=document.getElementById('cVille').value.trim();
+  appCfg.academie=document.getElementById('cAcad').value.trim();
+  appCfg.session=parseInt(document.getElementById('cSession').value)||2026;
+  appCfg.evaluateur=document.getElementById('cEval').value.trim();
+  appCfg.collegue=document.getElementById('cCollegue').value.trim();
+  appCfg.pctPM=parseInt(document.getElementById('cPM').value)||100;
+  appCfg.pctM=parseInt(document.getElementById('cM').value)||70;
+  appCfg.pctEC=parseInt(document.getElementById('cEC').value)||35;
+  NV_PCT.PM=appCfg.pctPM;NV_PCT.M=appCfg.pctM;NV_PCT.EC=appCfg.pctEC;
+  saveLocal();
+  document.getElementById('hdrEtab').textContent=`${appCfg.etablissement||'Campus Equatio'} — Session ${appCfg.session||2026}`;
+  toast('Configuration enregistrée','ok');
+}
+function loadCfgToForm(){
+  const f=(id,v)=>{const e=document.getElementById(id);if(e&&v)e.value=v;};
+  f('cEtab',appCfg.etablissement);f('cVille',appCfg.ville);f('cAcad',appCfg.academie);
+  f('cSession',appCfg.session);f('cEval',appCfg.evaluateur);f('cCollegue',appCfg.collegue);
+  f('cPM',appCfg.pctPM);f('cM',appCfg.pctM);f('cEC',appCfg.pctEC);
+}
+function toggleDemoMode(){
+  demoMode=!demoMode;document.body.classList.toggle('demo-mode',demoMode);
+  if(demoMode)loadDemoData();toast('Mode démo '+(demoMode?'activé':'désactivé'),'inf');
+}
+function loadDemoData(){
+  students=[
+    {code:'ELV-001',nom:'DUPONT',prenom:'Martin',classe:'CAP IFCA 1',statut:'actif',referentiel:'CAP_IFCA',token_eleve:'[DEMO]',token_tuteur:'[DEMO]',entreprise_nom:'Climafroid SARL',tuteur_nom:'Jean Martin',alerte:null,derniere_eval:new Date(Date.now()-86400000*3).toISOString()},
+    {code:'ELV-002',nom:'MARTIN',prenom:'Léa',classe:'CAP IFCA 1',statut:'actif',referentiel:'CAP_IFCA',token_eleve:'[DEMO]',token_tuteur:'[DEMO]',entreprise_nom:'FrigoTech',tuteur_nom:'Sophie Bernard',alerte:'5 jours sans évaluation',derniere_eval:new Date(Date.now()-86400000*5).toISOString()},
+    {code:'ELV-003',nom:'GARCIA',prenom:'Tom',classe:'CAP IFCA 2',statut:'actif',referentiel:'CAP_IFCA',token_eleve:'[DEMO]',token_tuteur:'[DEMO]',entreprise_nom:'AC Solutions',tuteur_nom:'Paul Roux',alerte:null,derniere_eval:new Date(Date.now()-86400000*1).toISOString()},
+    {code:'ELV-004',nom:'BERNARD',prenom:'Emma',classe:'CAP IFCA 2',statut:'actif',referentiel:'CAP_IFCA',token_eleve:'[DEMO]',token_tuteur:'[DEMO]',entreprise_nom:'Thermique Plus',tuteur_nom:'Lucie Moreau',alerte:'22 jours sans évaluation',derniere_eval:new Date(Date.now()-86400000*22).toISOString()},
+  ];
+  validations['ELV-001']=[
+    {epreuve:'EP2',competence:'C3.1',critere:'',niveau:'PM',evaluateur:'F. Henninot',timestamp:new Date(Date.now()-86400000*3).toISOString(),phase:'formatif',contexte:'atelier'},
+    {epreuve:'EP2',competence:'C3.4',critere:'',niveau:'M',evaluateur:'F. Henninot',timestamp:new Date(Date.now()-86400000*3).toISOString(),phase:'formatif',contexte:'atelier'},
+    {epreuve:'EP2',competence:'C3.9',critere:'',niveau:'EC',evaluateur:'F. Henninot',timestamp:new Date(Date.now()-86400000*2).toISOString(),phase:'formatif',contexte:'pfmp1'},
+    {epreuve:'EP3',competence:'C4.5',critere:'',niveau:'M',evaluateur:'F. Henninot',timestamp:new Date(Date.now()-86400000*1).toISOString(),phase:'formatif',contexte:'A'},
+    {epreuve:'EP3',competence:'C4.1',critere:'',niveau:'PM',evaluateur:'F. Henninot',timestamp:new Date(Date.now()-86400000*1).toISOString(),phase:'formatif',contexte:'A'},
+  ];
+  validations['ELV-003']=[
+    {epreuve:'EP2',competence:'C3.4',critere:'',niveau:'PM',evaluateur:'F. Henninot',timestamp:new Date().toISOString(),phase:'formatif',contexte:'pfmp1'},
+    {epreuve:'EP2',competence:'C3.6',critere:'',niveau:'M',evaluateur:'F. Henninot',timestamp:new Date().toISOString(),phase:'formatif',contexte:'pfmp1'},
+  ];
+  notes['ELV-001']={EP2:{note_finale:null,cloture:false},EP3:{note_finale:null,cloture:false}};
+  cur='ELV-001';updateAll();
+}
+
+/* ═══ [L] UTILITAIRES ═══ */
+function showModal(t,b,a){document.getElementById('modalTitle').textContent=t;document.getElementById('modalBody').innerHTML=b;document.getElementById('modalAct').innerHTML=a||'';document.getElementById('modalOv').classList.add('open');}
+function closeModal(){document.getElementById('modalOv').classList.remove('open');}
+function showSpinner(){document.getElementById('spinOv').classList.add('open');}
+function hideSpinner(){document.getElementById('spinOv').classList.remove('open');}
+function toast(msg,type='inf'){
+  const c=document.getElementById('toastC'),t=document.createElement('div');
+  t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);
+  setTimeout(()=>{t.style.cssText='opacity:0;transition:opacity .3s';setTimeout(()=>t.remove(),300);},3000);
+}
+function dateFR(iso){if(!iso)return'—';try{return new Date(iso).toLocaleDateString('fr-FR',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return String(iso).slice(0,10);}}
+function updateStor(){
+  const used=new Blob([localStorage.getItem(SK)||'']).size;
+  const el=document.getElementById('storTxt');if(el)el.textContent=`${(used/1024/1024).toFixed(1)} MB / 5 MB`;
+  const f=document.getElementById('storFill');if(f){const p=Math.min(used/(5*1024*1024)*100,100);f.style.width=p+'%';f.className='stor-fill'+(p>80?' danger':p>50?' warn':'');}
+}
+function updateAll(){renderDash();renderEleves();popSelects();updateStor();if(appCfg.etablissement)document.getElementById('hdrEtab').textContent=`${appCfg.etablissement} — Session ${appCfg.session||2026}`;}
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveLocal();toast('💾 Sauvegardé','ok');}});
+
+/* ═══ [M] INIT ═══ */
+function initApp(){loadLocal();loadCfgToForm();updateAll();syncAll();setPhase('formatif');}
+document.addEventListener('DOMContentLoaded',()=>{
+  if(loadConfig()){startApp();}
+  else{
+    document.body.classList.add('show-config');
+    const e=document.getElementById;
+    document.getElementById('cfgUrl').value='https://script.google.com/macros/s/AKfycbx2s-e-SLPHcSCheFn8bCuWdSY3jIZ1VjNdTJxJsF6CUeZeIA7tQysML_vqPrdLv9ScmA/exec';document.getElementById('cfgKey').value='';
+    document.getElementById('cfgNom').value='F. Henninot';
+    document.getElementById('cfgBase').value='https://frigorx.github.io/inerweb-tt/';
+  }
+});
+</script>
+</body>
+</html>
