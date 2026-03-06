@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>inerWeb TT — Tuteur</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{
+  --bleu:#1b3a63;--bleu2:#2d5a8c;--bleu3:#e8f0f8;
+  --orange:#ff6b35;--vert:#27ae60;--vert2:#d4f4e2;
+  --rouge:#e74c3c;--rouge2:#fde8e6;
+  --teal:#16a085;--teal2:#d0f0ea;
+  --gris:#6c757d;--gris2:#f0f2f5;--gris3:#dee2e6;
+  --texte:#1a2332;--blanc:#fff;
+  --r:12px;--r2:8px;
+  --ombre:0 4px 24px rgba(27,58,99,.12);
+  --ombre2:0 2px 8px rgba(27,58,99,.08);
+  --t:all .2s cubic-bezier(.4,0,.2,1);
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{-webkit-text-size-adjust:100%;}
+body{font-family:'Nunito',sans-serif;color:var(--texte);background:var(--gris2);min-height:100dvh;}
+input,select,textarea,button{font-family:inherit;}
+
+/* HEADER */
+.app-header{background:var(--teal);color:#fff;padding:.7rem 1rem;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+.hdr-logo{display:flex;align-items:center;gap:.5rem;}
+.hdr-ico{font-size:1.4rem;}
+.hdr-txt h1{font-size:1rem;font-weight:900;line-height:1;}
+.hdr-txt p{font-size:.65rem;opacity:.8;font-weight:600;}
+.hdr-badge{background:rgba(255,255,255,.2);border-radius:20px;padding:.2rem .6rem;font-size:.65rem;font-weight:800;}
+
+/* LAYOUT */
+.page{display:none;min-height:calc(100dvh - 56px);padding:1rem;}
+.page.active{display:block;}
+.page-inner{max-width:480px;margin:0 auto;}
+
+/* CARDS */
+.card{background:#fff;border-radius:var(--r);padding:1.25rem;box-shadow:var(--ombre2);margin-bottom:.75rem;}
+.card-title{font-size:1rem;font-weight:800;color:var(--bleu);margin-bottom:.75rem;display:flex;align-items:center;gap:.4rem;}
+
+/* BOUTONS */
+.btn{display:inline-flex;align-items:center;gap:.35rem;padding:.65rem 1.1rem;border-radius:var(--r2);border:none;cursor:pointer;font-weight:700;font-size:.85rem;transition:var(--t);width:100%;justify-content:center;}
+.btn-teal{background:var(--teal);color:#fff;}.btn-teal:hover{opacity:.9;}
+.btn-orange{background:var(--orange);color:#fff;}.btn-orange:hover{opacity:.9;}
+.btn-ghost{background:var(--gris2);color:var(--texte);}.btn-ghost:hover{background:var(--gris3);}
+.btn-vert{background:var(--vert);color:#fff;}.btn-vert:hover{opacity:.9;}
+.btn-rouge{background:var(--rouge);color:#fff;}
+.btn+.btn{margin-top:.5rem;}
+
+/* FORMULAIRE */
+.fr{display:flex;flex-direction:column;gap:.35rem;margin-bottom:.75rem;}
+.fr label{font-size:.75rem;font-weight:800;color:var(--bleu);text-transform:uppercase;letter-spacing:.3px;}
+.fr input,.fr select,.fr textarea{padding:.65rem .85rem;border:2px solid var(--gris3);border-radius:var(--r2);font-size:.9rem;transition:var(--t);}
+.fr input:focus,.fr select:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(22,160,133,.1);}
+
+/* ALERT */
+.alert{padding:.75rem 1rem;border-radius:var(--r2);font-size:.82rem;margin-bottom:.75rem;}
+.al-info{background:var(--bleu3);color:var(--bleu2);border-left:3px solid var(--bleu2);}
+.al-ok{background:var(--vert2);color:var(--vert);border-left:3px solid var(--vert);}
+.al-warn{background:#fef9e7;color:#7a5000;border-left:3px solid #f39c12;}
+.al-danger{background:var(--rouge2);color:var(--rouge);border-left:3px solid var(--rouge);}
+
+/* SCAN */
+.scan-zone{border:3px dashed var(--teal);border-radius:var(--r);padding:1.5rem;text-align:center;background:#fff;cursor:pointer;transition:var(--t);margin-bottom:.75rem;}
+.scan-zone:hover{background:var(--teal2);border-color:var(--teal);}
+.scan-ico{font-size:3rem;margin-bottom:.5rem;}
+.scan-txt{font-size:.9rem;font-weight:700;color:var(--teal);}
+.scan-sub{font-size:.75rem;color:var(--gris);margin-top:.25rem;}
+video{width:100%;border-radius:var(--r);background:#000;display:block;}
+
+/* ÉLÈVE SÉLECTIONNÉ */
+.eleve-card{background:linear-gradient(135deg,var(--teal),var(--bleu2));color:#fff;border-radius:var(--r);padding:1.25rem;margin-bottom:.75rem;display:flex;align-items:center;gap:1rem;}
+.eleve-av{width:52px;height:52px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:900;flex-shrink:0;}
+.eleve-nom{font-size:1.1rem;font-weight:900;line-height:1.2;}
+.eleve-meta{font-size:.75rem;opacity:.85;margin-top:.2rem;}
+
+/* COMPÉTENCES */
+.comp-row{display:flex;align-items:center;gap:.5rem;padding:.6rem .75rem;background:var(--gris2);border-radius:var(--r2);margin-bottom:.35rem;}
+.comp-code{font-size:.7rem;font-weight:800;color:var(--bleu2);background:var(--bleu3);padding:.15rem .4rem;border-radius:4px;font-family:monospace;flex-shrink:0;}
+.comp-nom{flex:1;font-size:.8rem;font-weight:700;}
+.lv-badge{padding:.2rem .5rem;border-radius:20px;font-size:.65rem;font-weight:800;flex-shrink:0;}
+.lv-PM{background:#d4f4e2;color:#1a7d3e;}
+.lv-M{background:var(--bleu3);color:var(--bleu2);}
+.lv-EC{background:#fef9e7;color:#a06e00;}
+.lv-NE{background:var(--gris2);color:var(--gris);}
+
+/* TOAST */
+.toast-c{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:.4rem;align-items:center;pointer-events:none;}
+.toast{padding:.55rem 1.1rem;border-radius:20px;font-size:.82rem;font-weight:700;color:#fff;white-space:nowrap;box-shadow:var(--ombre);}
+.toast.ok{background:var(--vert);}
+.toast.err{background:var(--rouge);}
+.toast.warn{background:#f39c12;}
+.toast.inf{background:var(--bleu2);}
+
+/* SPINNER */
+.spin-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:9000;align-items:center;justify-content:center;}
+.spin-ov.open{display:flex;}
+.spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* SÉPARATEUR ÉTAPES */
+.steps{display:flex;gap:0;margin-bottom:1rem;border-radius:var(--r);overflow:hidden;border:2px solid var(--gris3);}
+.step{flex:1;padding:.5rem;text-align:center;font-size:.7rem;font-weight:800;color:var(--gris);background:#fff;border-right:1px solid var(--gris3);}
+.step:last-child{border-right:none;}
+.step.active{background:var(--teal);color:#fff;}
+.step.done{background:var(--vert2);color:var(--vert);}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="hdr-logo">
+    <span class="hdr-ico">❄️</span>
+    <div class="hdr-txt"><h1>inerWeb TT</h1><p>Espace tuteur entreprise</p></div>
+  </div>
+  <span class="hdr-badge">v4.0</span>
+</header>
+
+<!-- PAGE 1 : ACCUEIL / IDENTIFICATION TUTEUR -->
+<div class="page active" id="page-accueil">
+  <div class="page-inner">
+    <div class="card" style="border-top:4px solid var(--teal)">
+      <div class="card-title">🏢 Bienvenue</div>
+      <div class="alert al-info">Vous êtes tuteur en entreprise d'un apprenti en formation CAP IFCA.<br>Cette interface vous permet de suivre sa progression et de valider ses compétences en stage.</div>
+      <div class="fr">
+        <label>Votre prénom et nom</label>
+        <input id="tutNom" placeholder="ex : Jean Martin" autocomplete="name">
+      </div>
+      <div class="fr">
+        <label>Nom de l'entreprise</label>
+        <input id="tutEntreprise" placeholder="ex : Climafroid SARL" autocomplete="organization">
+      </div>
+      <div class="fr">
+        <label>Votre email (optionnel)</label>
+        <input id="tutEmail" type="email" placeholder="jean.martin@entreprise.fr" autocomplete="email">
+      </div>
+      <button class="btn btn-teal" onclick="goToScan()">Suivant → Scanner le badge de l'apprenti 📱</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE 2 : SCANNER QR DE L'ÉLÈVE -->
+<div class="page" id="page-scan">
+  <div class="page-inner">
+    <div class="steps">
+      <div class="step done">✓ Identification</div>
+      <div class="step active">📱 Scanner</div>
+      <div class="step">📋 Suivi</div>
+    </div>
+    <div class="card">
+      <div class="card-title">📱 Scanner le badge de l'apprenti</div>
+      <div class="alert al-info">Demandez à l'apprenti son badge ou son QR code et scannez-le.</div>
+      <div id="scanZone">
+        <div class="scan-zone" onclick="startScanTuteur()">
+          <div class="scan-ico">📷</div>
+          <div class="scan-txt">Appuyer pour scanner</div>
+          <div class="scan-sub">Ouvre la caméra de votre téléphone</div>
+        </div>
+      </div>
+      <div id="videoZone" style="display:none;margin-bottom:.75rem">
+        <video id="tutVid" autoplay playsinline></video>
+        <button class="btn btn-ghost" style="margin-top:.5rem" onclick="stopScanTuteur()">✖ Annuler</button>
+      </div>
+      <div id="scanMsg"></div>
+      <div style="margin-top:.5rem">
+        <div style="font-size:.75rem;font-weight:700;color:var(--gris);text-align:center;margin-bottom:.5rem">— ou saisir manuellement —</div>
+        <div class="fr">
+          <label>Code apprenti</label>
+          <input id="codeManuel" placeholder="ex : ELV-001" style="text-transform:uppercase">
+        </div>
+        <button class="btn btn-ghost" onclick="chargerEleveManuel()">Charger l'apprenti</button>
+      </div>
+    </div>
+    <button class="btn btn-ghost" onclick="goPage('accueil')">← Retour</button>
+  </div>
+</div>
+
+<!-- PAGE 3 : SUIVI DE L'ÉLÈVE -->
+<div class="page" id="page-suivi">
+  <div class="page-inner">
+    <div class="steps">
+      <div class="step done">✓ Identification</div>
+      <div class="step done">✓ Scanner</div>
+      <div class="step active">📋 Suivi</div>
+    </div>
+    <div id="eleveInfo"></div>
+    <div id="suiviContenu"></div>
+    <button class="btn btn-ghost" style="margin-top:.5rem" onclick="goPage('scan')">📱 Scanner un autre apprenti</button>
+  </div>
+</div>
+
+<div class="toast-c" id="toastC"></div>
+<div class="spin-ov" id="spinOv"><div class="spinner"></div></div>
+
+<script>
+/* ═══ ÉTAT ═══ */
+let tuteur={nom:'',entreprise:'',email:''};
+let eleveCode=null,eleveData=null,eleveValidations=[];
+let _scanStream=null,_scanTimer=null;
+const API_URL='https://script.google.com/macros/s/AKfycbzTMUOksbOqGMCElJAlWNBXcYdfUBXERF3WHDKbII1U-erkcZhGozij9moF-DKtZNLjHA/exec';
+
+/* Charge config sauvegardée */
+const _cfg=JSON.parse(localStorage.getItem('inerweb-tt-cfg')||'{}');
+const API_KEY=_cfg.apiKey||'';
+
+/* ═══ NAVIGATION ═══ */
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ═══ ÉTAPE 1 → 2 ═══ */
+function goToScan(){
+  const nom=document.getElementById('tutNom').value.trim();
+  const ent=document.getElementById('tutEntreprise').value.trim();
+  if(!nom||!ent){toast('Nom et entreprise obligatoires','err');return;}
+  tuteur={nom,entreprise:ent,email:document.getElementById('tutEmail').value.trim()};
+  localStorage.setItem('inerweb-tuteur-id',JSON.stringify(tuteur));
+  goPage('scan');
+}
+
+/* ═══ SCANNER ═══ */
+async function startScanTuteur(){
+  document.getElementById('scanZone').style.display='none';
+  document.getElementById('videoZone').style.display='block';
+  try{
+    _scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const vid=document.getElementById('tutVid');
+    vid.srcObject=_scanStream;
+    await vid.play();
+    _scanTimer=setInterval(scanFrameTuteur,350);
+  }catch(e){
+    stopScanTuteur();
+    document.getElementById('scanMsg').innerHTML=`<div class="alert al-warn">⚠️ Caméra non disponible. Saisir le code manuellement.</div>`;
+  }
+}
+
+function stopScanTuteur(){
+  if(_scanTimer){clearInterval(_scanTimer);_scanTimer=null;}
+  if(_scanStream){_scanStream.getTracks().forEach(t=>t.stop());_scanStream=null;}
+  document.getElementById('scanZone').style.display='block';
+  document.getElementById('videoZone').style.display='none';
+}
+
+function scanFrameTuteur(){
+  const vid=document.getElementById('tutVid');
+  if(!vid||vid.readyState<2)return;
+  const cvs=document.createElement('canvas');
+  cvs.width=vid.videoWidth;cvs.height=vid.videoHeight;
+  cvs.getContext('2d').drawImage(vid,0,0);
+  if('BarcodeDetector' in window){
+    new BarcodeDetector({formats:['qr_code']}).detect(cvs).then(codes=>{
+      if(codes.length>0){stopScanTuteur();handleQRTuteur(codes[0].rawValue);}
+    }).catch(()=>{});
+  }
+}
+
+function handleQRTuteur(url){
+  try{
+    const u=new URL(url);
+    const code=u.searchParams.get('eleve')||u.searchParams.get('token');
+    const token=u.searchParams.get('token');
+    if(code){chargerEleve(code,token);}
+    else{toast('QR non reconnu — saisir manuellement','warn');}
+  }catch{toast('QR invalide','err');}
+}
+
+function chargerEleveManuel(){
+  const code=document.getElementById('codeManuel').value.trim().toUpperCase();
+  if(!code){toast('Saisir un code','err');return;}
+  chargerEleve(code,'');
+}
+
+/* ═══ CHARGEMENT ÉLÈVE ═══ */
+async function chargerEleve(code,token){
+  showSpinner();
+  try{
+    const params=new URLSearchParams({action:'getEleve',eleve:code,key:API_KEY});
+    const r=await fetch(`${API_URL}?${params}`,{redirect:'follow'});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error);
+    eleveCode=code;
+    eleveData=d;
+    // Charger les validations
+    const p2=new URLSearchParams({action:'getValidations',eleve:code,key:API_KEY});
+    const r2=await fetch(`${API_URL}?${p2}`,{redirect:'follow'});
+    eleveValidations=await r2.json()||[];
+    hideSpinner();
+    afficherSuivi();
+    goPage('suivi');
+  }catch(e){
+    hideSpinner();
+    // Mode hors-ligne : afficher formulaire de saisie directe
+    eleveCode=code;
+    eleveData={code,nom:'Apprenti',prenom:code,classe:'CAP IFCA'};
+    eleveValidations=[];
+    afficherSuivi();
+    goPage('suivi');
+    toast('Hors-ligne — données limitées','warn');
+  }
+}
+
+/* ═══ AFFICHAGE SUIVI ═══ */
+function afficherSuivi(){
+  const s=eleveData||{};
+  const initiales=((s.nom||'?')[0]+(s.prenom||'')[0]||'').toUpperCase();
+
+  document.getElementById('eleveInfo').innerHTML=`
+    <div class="eleve-card">
+      <div class="eleve-av">${initiales}</div>
+      <div>
+        <div class="eleve-nom">${s.nom||''} ${s.prenom||''}</div>
+        <div class="eleve-meta">${s.classe||'CAP IFCA'} · ${s.entreprise_nom||tuteur.entreprise}</div>
+        <div class="eleve-meta" style="margin-top:.2rem">Tuteur : ${tuteur.nom} — ${tuteur.entreprise}</div>
+      </div>
+    </div>`;
+
+  // Résumé compétences EP2
+  const COMP_EP2=['C3.1','C3.2','C3.3','C3.4','C3.6','C3.7','C3.8','C3.9'];
+  const COMP_NOM={'C3.1':'Organisation poste','C3.2':'Identifier réseaux','C3.3':'Implanter, fixer','C3.4':'Façonner, raccorder','C3.6':'Câbler, connecter','C3.7':'Contrôles','C3.8':'Tri déchets','C3.9':'Étanchéité'};
+
+  const dernierNiveau=(comp)=>{
+    const v=(eleveValidations||[]).filter(x=>x.epreuve==='EP2'&&x.competence===comp&&x.phase==='certif');
+    if(!v.length)return'NE';
+    return v.sort((a,b)=>b.timestamp?.localeCompare(a.timestamp||'')||0)[0].niveau||'NE';
+  };
+
+  const rows=COMP_EP2.map(c=>`
+    <div class="comp-row">
+      <span class="comp-code">${c}</span>
+      <span class="comp-nom">${COMP_NOM[c]||c}</span>
+      <span class="lv-badge lv-${dernierNiveau(c)}">${dernierNiveau(c)}</span>
+    </div>`).join('');
+
+  document.getElementById('suiviContenu').innerHTML=`
+    <div class="card">
+      <div class="card-title">📋 Progression EP2 — Réalisation</div>
+      <div class="alert al-info" style="font-size:.75rem">Ces niveaux sont évalués par l'enseignant. En tant que tuteur, vous pouvez ajouter une observation ci-dessous.</div>
+      ${rows}
+    </div>
+    <div class="card">
+      <div class="card-title">✍️ Votre observation</div>
+      <div class="fr">
+        <label>Période de stage</label>
+        <select id="tutPeriode">
+          <option value="pfmp1">PFMP 1</option>
+          <option value="pfmp2">PFMP 2</option>
+        </select>
+      </div>
+      <div class="fr">
+        <label>Votre observation générale</label>
+        <textarea id="tutObs" rows="4" placeholder="Décrivez le comportement professionnel, les points forts, les axes d'amélioration..."></textarea>
+      </div>
+      <div class="fr">
+        <label>Appréciation globale</label>
+        <select id="tutAppreciation">
+          <option value="">— Choisir —</option>
+          <option value="TB">Très bien</option>
+          <option value="B">Bien</option>
+          <option value="AB">Assez bien</option>
+          <option value="INS">Insuffisant</option>
+        </select>
+      </div>
+      <button class="btn btn-teal" onclick="envoyerObservation()">📤 Envoyer l'observation</button>
+    </div>`;
+}
+
+/* ═══ ENVOI OBSERVATION ═══ */
+async function envoyerObservation(){
+  const obs=document.getElementById('tutObs').value.trim();
+  const appr=document.getElementById('tutAppreciation').value;
+  const periode=document.getElementById('tutPeriode').value;
+  if(!obs){toast('Saisissez une observation','err');return;}
+  if(!appr){toast('Choisissez une appréciation','err');return;}
+
+  const data={
+    epreuve:'EP2',competence:'__obs_tuteur__',critere:'',
+    niveau:appr,contexte:periode,phase:'tuteur',
+    evaluateur:tuteur.nom,entreprise:tuteur.entreprise,
+    observation:obs,timestamp:new Date().toISOString()
+  };
+
+  showSpinner();
+  try{
+    const params=new URLSearchParams({action:'saveValidation',eleve:eleveCode,key:API_KEY,data:JSON.stringify(data)});
+    await fetch(`${API_URL}?${params}`,{redirect:'follow'});
+    hideSpinner();
+    toast('Observation envoyée ✓','ok');
+    document.getElementById('tutObs').value='';
+    document.getElementById('tutAppreciation').value='';
+  }catch{
+    hideSpinner();
+    // Sauvegarder localement en attendant
+    const pending=JSON.parse(localStorage.getItem('inerweb-tuteur-pending')||'[]');
+    pending.push({eleve:eleveCode,data});
+    localStorage.setItem('inerweb-tuteur-pending',JSON.stringify(pending));
+    toast('Sauvegardé hors-ligne — sync au retour réseau','warn');
+  }
+}
+
+/* ═══ UTILITAIRES ═══ */
+function showSpinner(){document.getElementById('spinOv').classList.add('open');}
+function hideSpinner(){document.getElementById('spinOv').classList.remove('open');}
+function toast(msg,type='inf'){
+  const c=document.getElementById('toastC'),t=document.createElement('div');
+  t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);
+  setTimeout(()=>{t.style.cssText='opacity:0;transition:opacity .3s';setTimeout(()=>t.remove(),300);},3000);
+}
+
+/* ═══ INIT ═══ */
+// Pré-remplir si déjà venu
+const _tid=JSON.parse(localStorage.getItem('inerweb-tuteur-id')||'{}');
+if(_tid.nom)document.getElementById('tutNom').value=_tid.nom;
+if(_tid.entreprise)document.getElementById('tutEntreprise').value=_tid.entreprise;
+if(_tid.email)document.getElementById('tutEmail').value=_tid.email;
+
+// Deep-link depuis QR élève : ?eleve=ELV-001&token=XXXX
+const _p=new URLSearchParams(window.location.search);
+if(_p.get('eleve')){
+  // L'élève a partagé son lien direct — on pré-charge
+  eleveCode=_p.get('eleve');
+  if(_tid.nom&&_tid.entreprise){
+    tuteur=_tid;
+    chargerEleve(eleveCode,_p.get('token')||'');
+    goPage('suivi');
+  }
+}
+</script>
+</body>
+</html>

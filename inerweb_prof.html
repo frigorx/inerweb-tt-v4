@@ -64,7 +64,7 @@ body.show-config #screen-config{display:flex;}
 /* [3] Layout + tabs */
 #screen-app{display:none;flex-direction:column;min-height:100dvh;}
 body.show-app #screen-app{display:flex;}
-.main-content{flex:1;overflow-y:auto;padding-bottom:100px;}
+.main-content{flex:1;overflow-y:auto;padding-bottom:1rem;}
 .tab-pane{display:none;}.tab-pane.active{display:block;}
 .tab-inner{max-width:900px;margin:0 auto;padding:1rem;}
 
@@ -82,12 +82,13 @@ body.show-app #screen-app{display:flex;}
 .sync-dot.offline{background:var(--rouge);}
 .sync-dot.syncing{background:var(--jaune);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:#fff;border-top:2px solid var(--gris3);display:flex;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(0,0,0,.08);}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.55rem .2rem;min-height:70px;border:none;background:none;cursor:pointer;color:var(--gris);font-size:.75rem;font-weight:800;gap:.25rem;transition:var(--t);position:relative;min-width:0;letter-spacing:.2px;}
+.top-nav{background:#fff;border-bottom:2px solid var(--gris3);display:flex;box-shadow:0 4px 16px rgba(0,0,0,.08);overflow-x:auto;scrollbar-width:none;}
+.top-nav::-webkit-scrollbar{display:none;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.5rem .2rem;min-height:64px;min-width:64px;border:none;background:none;cursor:pointer;color:var(--gris);font-size:.75rem;font-weight:800;gap:.2rem;transition:var(--t);position:relative;white-space:nowrap;letter-spacing:.2px;}
 .nav-btn .ni{font-size:2rem;line-height:1;}
 .nav-btn:hover{color:var(--bleu2);background:var(--bleu3);}
 .nav-btn.active{color:var(--bleu);background:var(--bleu3);}
-.nav-btn.active::after{content:'';position:absolute;top:0;left:10%;right:10%;height:3px;background:var(--orange);border-radius:0 0 6px 6px;}
+.nav-btn.active::after{content:'';position:absolute;bottom:0;left:10%;right:10%;height:3px;background:var(--orange);border-radius:4px 4px 0 0;}
 .nav-badge{position:absolute;top:.35rem;right:calc(50% - 1.3rem);background:var(--rouge);color:#fff;font-size:.55rem;font-weight:800;min-width:16px;height:16px;border-radius:8px;padding:0 .3rem;display:flex;align-items:center;justify-content:center;}
 
 /* [5] Cards & composants */
@@ -279,7 +280,7 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
     <div class="cfg-logo">
       <div class="cfg-logo-ico">❄️</div>
       <div class="cfg-logo-txt"><h1>inerWeb TT</h1><p>CCF + Stage — Plateforme professeur</p></div>
-      <span class="cfg-badge">v3.0</span>
+      <span class="cfg-badge">v4.0</span>
     </div>
     <div class="cfg-hint">
       <code>URL API</code> = URL de déploiement Code.gs ·
@@ -308,6 +309,17 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
       <button class="btn btn-ghost btn-xs" onclick="showParamModal()">⚙️</button>
     </div>
   </header>
+
+  <nav class="top-nav">
+    <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="ni">🏠</span>Tableau</button>
+    <button class="nav-btn" data-tab="eleves" onclick="switchTab('eleves')"><span class="ni">👥</span>Élèves</button>
+    <button class="nav-btn" data-tab="ep2" onclick="switchTab('ep2')"><span class="ni">🔧</span>EP2</button>
+    <button class="nav-btn" data-tab="ep3" onclick="switchTab('ep3')"><span class="ni">⚡</span>EP3</button>
+    <button class="nav-btn" data-tab="stage" onclick="switchTab('stage')"><span class="ni">🏢</span>Stage</button>
+    <button class="nav-btn" data-tab="bilan" onclick="switchTab('bilan')"><span class="ni">🏆</span>Bilan</button>
+    <button class="nav-btn" data-tab="export" onclick="switchTab('export')"><span class="ni">📤</span>Export</button>
+    <button class="nav-btn" data-tab="config" onclick="switchTab('config')"><span class="ni">⚙️</span>Config</button>
+  </nav>
 
   <main class="main-content">
 
@@ -487,16 +499,6 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
 
   </main>
 
-  <nav class="bottom-nav">
-    <button class="nav-btn active" data-tab="dashboard" onclick="switchTab('dashboard')"><span class="ni">🏠</span>Tableau</button>
-    <button class="nav-btn" data-tab="eleves" onclick="switchTab('eleves')"><span class="ni">👥</span>Élèves</button>
-    <button class="nav-btn" data-tab="ep2" onclick="switchTab('ep2')"><span class="ni">🔧</span>EP2</button>
-    <button class="nav-btn" data-tab="ep3" onclick="switchTab('ep3')"><span class="ni">⚡</span>EP3</button>
-    <button class="nav-btn" data-tab="stage" onclick="switchTab('stage')"><span class="ni">🏢</span>Stage</button>
-    <button class="nav-btn" data-tab="bilan" onclick="switchTab('bilan')"><span class="ni">🏆</span>Bilan</button>
-    <button class="nav-btn" data-tab="export" onclick="switchTab('export')"><span class="ni">📤</span>Export</button>
-    <button class="nav-btn" data-tab="config" onclick="switchTab('config')"><span class="ni">⚙️</span>Config</button>
-  </nav>
 </div>
 
 <div class="modal-ov" id="modalOv" onclick="if(event.target===this)closeModal()">
@@ -1142,27 +1144,21 @@ async function importRows(rows){
 }
 function showQR(code){
   const s=students.find(x=>x.code===code)||{nom:'?',prenom:''};
-  const base=cfg.baseUrl||'';
-  const baseProf=window.location.href.split('?')[0];
+  const base=cfg.baseUrl||'https://frigorx.github.io/inerweb-tt-v4/';
   const ue=`${base}inerweb_eleve.html?eleve=${code}&token=${s.token_eleve||'TOKEN'}`;
-  const ut=`${base}inerweb_tuteur.html?eleve=${code}&tuteur=${s.token_tuteur||'TUTEUR'}`;
-  const up=`${baseProf}?key=${cfg.apiKey}&eleve=${code}&mode=ep2`;
+  const ut=`${base}inerweb_tuteur.html`;
   showModal(`📱 QR Codes — ${s.nom} ${s.prenom||''}`,`
   <div class="qr-wrap">
-    <div class="qr-item"><div class="qr-lbl">📱 Lien élève</div><div id="qre" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${ue}</div></div>
-    <div class="qr-item"><div class="qr-lbl">🏢 Lien tuteur</div><div id="qrt" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${ut}</div></div>
-    <div class="qr-item" style="border-top:2px solid var(--orange)"><div class="qr-lbl" style="color:var(--orange)">⚡ Badge prof (scan rapide → EP2)</div><div id="qrp" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${up}</div></div>
+    <div class="qr-item"><div class="qr-lbl">📱 Badge élève</div><div id="qre" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${ue}</div></div>
+    <div class="qr-item"><div class="qr-lbl">🏢 Badge tuteur (accès page tuteur)</div><div id="qrt" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${ut}</div></div>
   </div>`,'<button class="btn btn-ghost" onclick="closeModal()">Fermer</button>');
   setTimeout(()=>{
     try{
-      new QRCode(document.getElementById('qre'),{text:ue,width:130,height:130});
-      new QRCode(document.getElementById('qrt'),{text:ut,width:130,height:130});
-      new QRCode(document.getElementById('qrp'),{text:up,width:130,height:130});
-    }
-    catch{
+      new QRCode(document.getElementById('qre'),{text:ue,width:150,height:150});
+      new QRCode(document.getElementById('qrt'),{text:ut,width:150,height:150});
+    }catch{
       document.getElementById('qre').textContent=ue;
       document.getElementById('qrt').textContent=ut;
-      document.getElementById('qrp').textContent=up;
     }
   },100);
 }
