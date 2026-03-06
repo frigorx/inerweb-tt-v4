@@ -170,6 +170,52 @@ video{width:100%;border-radius:var(--r);background:#000;display:block;}
 .spin-ov.open{display:flex;}
 .spinner{width:48px;height:48px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg)}}
+
+/* ═══ LÉGENDE ÉVALUATION ═══ */
+.legende-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:.65rem .85rem;background:var(--teal2);border-radius:var(--r2);margin-bottom:.5rem;border:2px solid var(--teal);transition:var(--t);}
+.legende-toggle:hover{background:#b2e6da;}
+.legende-toggle-lbl{font-size:.82rem;font-weight:800;color:var(--teal);display:flex;align-items:center;gap:.4rem;}
+.legende-toggle-arr{font-size:.75rem;color:var(--teal);transition:transform .25s;}
+.legende-toggle-arr.open{transform:rotate(180deg);}
+.legende-body{display:none;margin-bottom:.6rem;}
+.legende-body.open{display:block;}
+
+/* Niveaux compétences */
+.leg-section-title{font-size:.72rem;font-weight:900;text-transform:uppercase;letter-spacing:.5px;color:var(--gris);margin:0 0 .5rem;padding-bottom:.3rem;border-bottom:2px solid var(--gris3);}
+.leg-grid{display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin-bottom:.6rem;}
+@media(max-width:400px){.leg-grid{grid-template-columns:1fr;}}
+.leg-card{border-radius:var(--r2);border:2px solid;overflow:hidden;}
+.leg-hdr{padding:.5rem .65rem;display:flex;align-items:center;gap:.5rem;}
+.leg-badge{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.78rem;font-weight:900;color:#fff;flex-shrink:0;}
+.leg-hdr-txt{font-size:.78rem;font-weight:800;line-height:1.2;}
+.leg-hdr-sub{font-size:.62rem;font-weight:700;text-transform:uppercase;letter-spacing:.3px;opacity:.7;margin-top:1px;}
+.leg-bdy{padding:.4rem .65rem .6rem;font-size:.72rem;line-height:1.45;}
+.leg-desc{margin-bottom:.35rem;}
+.leg-ex{font-style:italic;font-size:.67rem;border-top:1px dashed;padding-top:.3rem;opacity:.85;}
+
+.leg-PM{border-color:#1a7d3e;background:#d4f4e2;}
+.leg-PM .leg-hdr{background:#d4f4e2;}.leg-PM .leg-badge{background:#1a7d3e;}
+.leg-PM .leg-hdr-txt{color:#1a5e2e;}.leg-PM .leg-hdr-sub{color:#1a5e2e;}
+.leg-PM .leg-ex{border-color:#1a7d3e;color:#1a5e2e;}
+
+.leg-M{border-color:var(--bleu2);background:var(--bleu3);}
+.leg-M .leg-hdr{background:var(--bleu3);}.leg-M .leg-badge{background:var(--bleu2);}
+.leg-M .leg-hdr-txt{color:var(--bleu);}.leg-M .leg-hdr-sub{color:var(--bleu);}
+.leg-M .leg-ex{border-color:var(--bleu2);color:var(--bleu);}
+
+.leg-EC{border-color:var(--jaune);background:var(--jaune2);}
+.leg-EC .leg-hdr{background:var(--jaune2);}.leg-EC .leg-badge{background:var(--jaune);}
+.leg-EC .leg-hdr-txt{color:#7a4f00;}.leg-EC .leg-hdr-sub{color:#7a4f00;}
+.leg-EC .leg-ex{border-color:var(--jaune);color:#7a4f00;}
+
+.leg-NE{border-color:var(--gris);background:var(--gris2);}
+.leg-NE .leg-hdr{background:var(--gris2);}.leg-NE .leg-badge{background:var(--gris);}
+.leg-NE .leg-hdr-txt{color:#3d4450;}.leg-NE .leg-hdr-sub{color:#3d4450;}
+.leg-NE .leg-ex{border-color:var(--gris);color:#3d4450;}
+
+/* Conseil box */
+.leg-conseil{background:#fff;border:2px solid var(--gris3);border-radius:var(--r2);padding:.55rem .75rem;font-size:.73rem;line-height:1.5;color:var(--texte);margin-bottom:.4rem;display:flex;align-items:flex-start;gap:.5rem;}
+.leg-conseil-ico{font-size:1rem;flex-shrink:0;margin-top:1px;}
 </style>
 </head>
 <body>
@@ -334,6 +380,89 @@ video{width:100%;border-radius:var(--r);background:#000;display:block;}
           <option value="formatif">Formative</option>
           <option value="certif">Certificative</option>
         </select>
+      </div>
+    </div>
+
+    <!-- ─── LÉGENDE ACCORDÉON ─── -->
+    <div class="card" style="padding:.7rem .85rem">
+      <div class="legende-toggle" onclick="toggleLegende()" id="legToggle">
+        <span class="legende-toggle-lbl">❓ Comment noter ? — Comprendre les niveaux</span>
+        <span class="legende-toggle-arr" id="legArr">▼</span>
+      </div>
+      <div class="legende-body" id="legBody">
+
+        <p class="leg-section-title">Compétences techniques — Niveaux PM / M / EC / NE</p>
+        <div class="leg-grid">
+
+          <div class="leg-card leg-PM">
+            <div class="leg-hdr">
+              <div class="leg-badge">PM</div>
+              <div>
+                <div class="leg-hdr-txt">Pleinement Maîtrisé</div>
+                <div class="leg-hdr-sub">Autonome ✓✓</div>
+              </div>
+            </div>
+            <div class="leg-bdy">
+              <div class="leg-desc">Réalise seul, sans aide, avec fiabilité et précision.</div>
+              <div class="leg-ex">💡 Ex. : Tire au vide, charge en fluide et rédige seul la fiche d'intervention.</div>
+            </div>
+          </div>
+
+          <div class="leg-card leg-M">
+            <div class="leg-hdr">
+              <div class="leg-badge">M</div>
+              <div>
+                <div class="leg-hdr-txt">Maîtrisé</div>
+                <div class="leg-hdr-sub">Correct ✓</div>
+              </div>
+            </div>
+            <div class="leg-bdy">
+              <div class="leg-desc">Réalise correctement avec quelques vérifications ponctuelles.</div>
+              <div class="leg-ex">💡 Ex. : Fait une mise en service PAC — vous vérifiez encore les pressions.</div>
+            </div>
+          </div>
+
+          <div class="leg-card leg-EC">
+            <div class="leg-hdr">
+              <div class="leg-badge">EC</div>
+              <div>
+                <div class="leg-hdr-txt">En Cours</div>
+                <div class="leg-hdr-sub">Débutant △</div>
+              </div>
+            </div>
+            <div class="leg-bdy">
+              <div class="leg-desc">Essaie mais a souvent besoin d'aide ou fait des erreurs.</div>
+              <div class="leg-ex">💡 Ex. : Branche une ligne frigo mais oublie le serrage des raccords.</div>
+            </div>
+          </div>
+
+          <div class="leg-card leg-NE">
+            <div class="leg-hdr">
+              <div class="leg-badge">NE</div>
+              <div>
+                <div class="leg-hdr-txt">Non Évalué</div>
+                <div class="leg-hdr-sub">Non observé —</div>
+              </div>
+            </div>
+            <div class="leg-bdy">
+              <div class="leg-desc">Activité non réalisée en stage (chantier, type d'entreprise...).</div>
+              <div class="leg-ex">💡 Ex. : L'entreprise ne fait pas de PAC — jamais eu l'occasion de faire ce geste.</div>
+            </div>
+          </div>
+
+        </div>
+
+        <p class="leg-section-title" style="margin-top:.5rem">Comportement professionnel — Niveaux 0 → 3</p>
+        <div class="leg-conseil" style="margin-bottom:.6rem">
+          <span class="leg-conseil-ico">🔢</span>
+          <span><strong>0</strong> = comportement problématique &nbsp;·&nbsp; <strong>1</strong> = insuffisant &nbsp;·&nbsp; <strong>2</strong> = correct &nbsp;·&nbsp; <strong>3</strong> = exemplaire. Chaque critère a sa propre description détaillée.</span>
+        </div>
+
+        <p class="leg-section-title" style="margin-top:.5rem">Conseils pratiques</p>
+        <div class="leg-conseil"><span class="leg-conseil-ico">👁️</span><span>Évaluez uniquement ce que vous avez <strong>réellement observé</strong> sur le terrain — pas ce qu'il aurait pu faire.</span></div>
+        <div class="leg-conseil"><span class="leg-conseil-ico">⏱️</span><span>Faites confiance à votre <strong>première impression</strong>. Il n'y a pas de mauvaise réponse — votre avis de professionnel compte.</span></div>
+        <div class="leg-conseil"><span class="leg-conseil-ico">❓</span><span>En cas de doute, choisissez <strong>NE</strong> ou le niveau inférieur. L'enseignant ajuste la consolidation finale.</span></div>
+
       </div>
     </div>
 
@@ -738,6 +867,14 @@ function toast(msg,type='inf'){
   const c=document.getElementById('toastC'),t=document.createElement('div');
   t.className=`toast ${type}`;t.textContent=msg;c.appendChild(t);
   setTimeout(()=>{t.style.cssText='opacity:0;transition:opacity .3s';setTimeout(()=>t.remove(),300);},3000);
+}
+
+/* ═══ LÉGENDE ═══ */
+function toggleLegende(){
+  const body=document.getElementById('legBody');
+  const arr=document.getElementById('legArr');
+  body.classList.toggle('open');
+  arr.classList.toggle('open');
 }
 
 /* ═══ INIT ═══ */
