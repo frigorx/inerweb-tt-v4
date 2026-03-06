@@ -336,6 +336,7 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
     <button class="nav-btn" data-tab="rapport" onclick="switchTab('rapport')"><span class="ni">📝</span>Rapport</button>
     <button class="nav-btn" data-tab="export" onclick="switchTab('export')"><span class="ni">📤</span>Export</button>
     <button class="nav-btn" data-tab="config" onclick="switchTab('config')"><span class="ni">⚙️</span>Config</button>
+    <button class="nav-btn" data-tab="admin" onclick="switchTab('admin')" id="navAdmin" style="display:none"><span class="ni">👑</span>Admin</button>
   </nav>
 
   <main class="main-content">
@@ -553,6 +554,44 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
       </div>
     </div></div>
 
+    <!-- ADMIN -->
+    <div class="tab-pane" id="tab-admin"><div class="tab-inner">
+      <div class="card" style="border-top:4px solid var(--orange);">
+        <div class="card-title" style="color:var(--orange)">👑 Administration</div>
+        <p style="font-size:.78rem;color:var(--gris);margin-bottom:1rem;">Gestion des évaluateurs et de leurs droits d'accès.</p>
+        
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
+          <span style="font-weight:800;color:var(--bleu);font-size:.9rem">👨‍🏫 Évaluateurs</span>
+          <button class="btn btn-primary btn-sm" onclick="showAddUser()">➕ Ajouter</button>
+        </div>
+        <div id="usersList"><div class="alert al-info">Chargement...</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">🏫 Classes</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem;">
+          <span style="font-size:.78rem;color:var(--gris)">Classes disponibles pour assignation</span>
+          <button class="btn btn-teal btn-sm" onclick="showAddClasse()">➕ Nouvelle classe</button>
+        </div>
+        <div id="classesList"><div class="alert al-info">Chargement...</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📖 Journal des modifications</div>
+        <p style="font-size:.78rem;color:var(--gris);margin-bottom:.75rem;">Historique des actions sur le système.</p>
+        <div id="adminJournal" style="max-height:300px;overflow-y:auto;"><div class="alert al-info">Chargement...</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">💾 Gestion des backups</div>
+        <div style="display:flex;gap:.4rem;margin-bottom:.75rem;">
+          <button class="btn btn-primary btn-sm" onclick="createBackup(false)">💾 Backup maintenant</button>
+          <button class="btn btn-ghost btn-sm" onclick="renderAdminBackups()">🔄 Actualiser</button>
+        </div>
+        <div id="adminBackupList" style="max-height:250px;overflow-y:auto;"><div class="alert al-info">Chargement...</div></div>
+      </div>
+    </div></div>
+
   </main>
 
 </div>
@@ -638,12 +677,35 @@ const NV_PCT={NE:0,NA:0,EC:35,M:70,PM:100,'NE-ABS':0,'NE-IMP':0,'NE-NON':0,'NE-R
 const NV_LBL={NE:'Non Évalué',NA:'Non Acquis',EC:'En Cours',M:'Maîtrisé',PM:'Parfaitement Maîtrisé','NE-ABS':'Absent','NE-IMP':'Impossible','NE-NON':'Non présenté','NE-REF':'Refus élève'};
 const NE_MOTIFS={'NE-ABS':'Élève absent lors de l\'évaluation','NE-IMP':'Conditions ne permettant pas l\'évaluation','NE-NON':'Compétence non travaillée','NE-REF':'Refus de l\'élève de réaliser la tâche'};
 
+/* ═══ [A2] ADMIN : DROITS ET ROLES ═══ */
+const ADMIN_KEY='IFCA-ADMIN-2026-MASTER';
+const DROITS_DEFAUT={
+  'classes.creer':false,'classes.modifier':false,
+  'eleves.creer':true,'eleves.supprimer':false,
+  'pfmp.definir':true,
+  'eval.ep2':true,'eval.ep3':true,
+  'export.pdf':true,'export.excel':true,
+  'qr.generer':true,
+  'cloture.epreuve':true,'cloture.annuler':false
+};
+const DROITS_LABELS={
+  'classes.creer':'Créer des classes','classes.modifier':'Modifier/supprimer des classes',
+  'eleves.creer':'Ajouter des élèves','eleves.supprimer':'Supprimer des élèves',
+  'pfmp.definir':'Définir les dates PFMP',
+  'eval.ep2':'Évaluer EP2','eval.ep3':'Évaluer EP3',
+  'export.pdf':'Exporter PDF','export.excel':'Exporter Excel',
+  'qr.generer':'Générer QR codes',
+  'cloture.epreuve':'Clôturer une épreuve','cloture.annuler':'Déverrouiller épreuve clôturée'
+};
+const CLASSES_DEFAUT=['CAP IFCA 1','CAP IFCA 2','2nde TNE','1ère MFER','Term MFER'];
+
 /* ═══ [B] ÉTAT GLOBAL ═══ */
 let cfg={},appCfg={};
 let students=[],validations={},notes={},pfmpData={},partenaires=[];
+let users=[],classes=[],adminJournal=[];
 let cur=null,curCtx='atelier',curSit='A',curPhase='formatif';
-let online=false,demoMode=false;
-const SK='inerweb-tt-prof-v4',SCFG='inerweb-tt-cfg',SPART='inerweb-tt-parts';
+let online=false,demoMode=false,isAdmin=false,currentUser=null;
+const SK='inerweb-tt-prof-v4',SCFG='inerweb-tt-cfg',SPART='inerweb-tt-parts',SUSERS='inerweb-tt-users',SCLASSES='inerweb-tt-classes',SJOURNAL='inerweb-tt-journal';
 const DB_NAME='inerwebtt-db',DB_VERSION=1;
 let db=null,backupInterval=null;
 
@@ -831,6 +893,8 @@ async function pushVal(data){
 
 /* ═══ [D] NAVIGATION ═══ */
 function switchTab(tab){
+  // Vérifier accès admin
+  if(tab==='admin'&&!isAdmin){toast('Accès réservé aux administrateurs','err');return;}
   document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   document.getElementById('tab-'+tab).classList.add('active');
@@ -843,6 +907,7 @@ function switchTab(tab){
   if(tab==='stage')renderStage();
   if(tab==='export'){renderJournal();renderBackupList();}
   if(tab==='eleves')renderEleves();
+  if(tab==='admin')renderAdminTab();
 }
 function selectStudent(code,ctx){
   cur=code;
@@ -1836,10 +1901,225 @@ function updateStor(){
 function updateAll(){renderDash();renderEleves();popSelects();updateStor();if(appCfg.etablissement)document.getElementById('hdrEtab').textContent=`${appCfg.etablissement} — Session ${appCfg.session||2026}`;}
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveLocal();toast('💾 Sauvegardé','ok');}});
 
+/* ═══ [L2] ADMIN MODULE ═══ */
+function genUserKey(){
+  const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let k='IFCA-';
+  for(let i=0;i<2;i++)k+=chars[Math.floor(Math.random()*chars.length)];
+  k+='-';
+  for(let i=0;i<4;i++)k+=chars[Math.floor(Math.random()*chars.length)];
+  return k;
+}
+function checkAdmin(){
+  isAdmin=(cfg.apiKey===ADMIN_KEY);
+  const nav=document.getElementById('navAdmin');
+  if(nav)nav.style.display=isAdmin?'flex':'none';
+  // Identifier l'utilisateur courant
+  if(isAdmin){
+    currentUser={nom:cfg.nomProf||'Admin',role:'admin',droits:Object.fromEntries(Object.keys(DROITS_DEFAUT).map(k=>[k,true]))};
+  }else{
+    currentUser=users.find(u=>u.cle===cfg.apiKey)||null;
+  }
+  return isAdmin;
+}
+function hasDroit(d){
+  if(isAdmin)return true;
+  if(!currentUser||!currentUser.droits)return DROITS_DEFAUT[d]||false;
+  return currentUser.droits[d]??DROITS_DEFAUT[d]??false;
+}
+function loadAdminData(){
+  users=JSON.parse(localStorage.getItem(SUSERS)||'[]');
+  classes=JSON.parse(localStorage.getItem(SCLASSES)||'[]');
+  adminJournal=JSON.parse(localStorage.getItem(SJOURNAL)||'[]');
+  if(!classes.length)classes=[...CLASSES_DEFAUT];
+}
+function saveAdminData(){
+  localStorage.setItem(SUSERS,JSON.stringify(users));
+  localStorage.setItem(SCLASSES,JSON.stringify(classes));
+  localStorage.setItem(SJOURNAL,JSON.stringify(adminJournal));
+}
+function logAdmin(action,detail=''){
+  adminJournal.unshift({ts:new Date().toISOString(),qui:cfg.nomProf||'Admin',action,detail});
+  if(adminJournal.length>200)adminJournal=adminJournal.slice(0,200);
+  saveAdminData();
+}
+function renderUsers(){
+  const c=document.getElementById('usersList');
+  if(!c)return;
+  if(!users.length){c.innerHTML='<div class="alert al-info">Aucun évaluateur. Cliquez "Ajouter" pour en créer un.</div>';return;}
+  c.innerHTML=users.map((u,i)=>{
+    const classesStr=u.classes?.length?u.classes.join(', '):'<em style="color:var(--gris)">Aucune classe</em>';
+    return `<div style="display:flex;align-items:center;gap:.75rem;padding:.75rem;background:var(--gris2);border-radius:var(--r2);margin-bottom:.5rem;border-left:4px solid ${u.actif!==false?'var(--vert)':'var(--gris)'}">
+      <div style="flex:1">
+        <div style="font-weight:800;font-size:.9rem">${u.nom}</div>
+        <div style="font-size:.72rem;color:var(--gris);font-family:'JetBrains Mono',monospace">${u.cle}</div>
+        <div style="font-size:.7rem;color:var(--bleu2);margin-top:.2rem">📚 ${classesStr}</div>
+      </div>
+      <button class="btn btn-primary btn-xs" onclick="showEditUser(${i})">✏️</button>
+      <button class="btn btn-orange btn-xs" onclick="regenUserKey(${i})" title="Régénérer clé">🔄</button>
+      <button class="btn btn-rouge btn-xs" onclick="confirmDelUser(${i})">🗑️</button>
+    </div>`;
+  }).join('');
+}
+function renderClasses(){
+  const c=document.getElementById('classesList');
+  if(!c)return;
+  if(!classes.length){c.innerHTML='<div class="alert al-info">Aucune classe définie.</div>';return;}
+  c.innerHTML=classes.map((cl,i)=>`
+    <span style="display:inline-flex;align-items:center;gap:.3rem;padding:.35rem .6rem;background:var(--bleu3);border-radius:20px;font-size:.78rem;font-weight:700;color:var(--bleu);margin:.15rem;">
+      ${cl}
+      <span style="cursor:pointer;opacity:.6" onclick="delClasse(${i})" title="Supprimer">✕</span>
+    </span>
+  `).join('');
+}
+function renderAdminJournal(){
+  const c=document.getElementById('adminJournal');
+  if(!c)return;
+  if(!adminJournal.length){c.innerHTML='<div class="alert al-info">Aucune action enregistrée.</div>';return;}
+  c.innerHTML=adminJournal.slice(0,50).map(j=>`
+    <div style="padding:.4rem;border-bottom:1px solid var(--gris3);font-size:.75rem">
+      <span style="color:var(--gris)">${dateFR(j.ts)} ${new Date(j.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})}</span>
+      <strong style="color:var(--bleu2);margin:0 .3rem">${j.qui}</strong>
+      <span>${j.action}</span>
+      ${j.detail?`<span style="color:var(--gris)"> — ${j.detail}</span>`:''}
+    </div>
+  `).join('');
+}
+async function renderAdminBackups(){
+  const c=document.getElementById('adminBackupList');
+  if(!c)return;
+  const bks=await getBackups();
+  if(!bks.length){c.innerHTML='<div class="alert al-info">Aucun backup.</div>';return;}
+  c.innerHTML=bks.slice(0,20).map(b=>{
+    const d=new Date(b.timestamp);
+    return `<div style="display:flex;align-items:center;gap:.5rem;padding:.5rem;background:var(--gris2);border-radius:var(--r2);margin-bottom:.3rem">
+      <div style="flex:1">
+        <div style="font-size:.78rem;font-weight:700">${d.toLocaleDateString('fr-FR')} ${d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})} ${b.auto?'(auto)':'(manuel)'}</div>
+        <div style="font-size:.68rem;color:var(--gris)">${b.students?.length||0} élèves</div>
+      </div>
+      <button class="btn btn-vert btn-xs" onclick="restoreBackup(${b.id})">♻️</button>
+      <button class="btn btn-rouge btn-xs" onclick="deleteBackup(${b.id})">🗑️</button>
+    </div>`;
+  }).join('');
+}
+function showAddUser(){
+  const cks=classes.map((cl,i)=>`<label style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;cursor:pointer"><input type="checkbox" id="uc${i}" value="${cl}"> ${cl}</label>`).join('');
+  const droitsCks=Object.entries(DROITS_LABELS).map(([k,lbl])=>`<label style="display:flex;align-items:center;gap:.3rem;font-size:.78rem;cursor:pointer"><input type="checkbox" id="ud_${k}" ${DROITS_DEFAUT[k]?'checked':''}> ${lbl}</label>`).join('');
+  showModal('➕ Nouvel évaluateur',`
+    <div class="fr"><label>Nom complet</label><input id="uNom" placeholder="J. Martin"></div>
+    <div style="margin-top:.75rem;font-size:.8rem;font-weight:800;color:var(--bleu)">📚 Classes assignées</div>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem">${cks}</div>
+    <div style="margin-top:.75rem;font-size:.8rem;font-weight:800;color:var(--bleu)">🔐 Droits</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem;margin-top:.3rem">${droitsCks}</div>
+  `,`<button class="btn btn-primary" onclick="doAddUser()">✅ Créer</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+function doAddUser(){
+  const nom=document.getElementById('uNom').value.trim();
+  if(!nom){toast('Nom obligatoire','err');return;}
+  const cle=genUserKey();
+  const userClasses=classes.filter((cl,i)=>document.getElementById('uc'+i)?.checked);
+  const droits={};
+  Object.keys(DROITS_DEFAUT).forEach(k=>{droits[k]=document.getElementById('ud_'+k)?.checked||false;});
+  users.push({nom,cle,classes:userClasses,droits,actif:true,cree:new Date().toISOString()});
+  saveAdminData();
+  logAdmin('Création utilisateur',nom);
+  closeModal();
+  renderUsers();
+  toast(`Utilisateur créé. Clé: ${cle}`,'ok');
+  // Afficher la clé
+  setTimeout(()=>{
+    showModal('🔑 Clé générée',`
+      <p style="margin-bottom:.5rem">Transmettez cette clé à <strong>${nom}</strong> :</p>
+      <div style="background:var(--bleu3);padding:1rem;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:800;text-align:center;color:var(--bleu);letter-spacing:2px">${cle}</div>
+      <p style="font-size:.75rem;color:var(--gris);margin-top:.5rem">⚠️ Cette clé ne sera plus affichée. Notez-la ou envoyez-la maintenant.</p>
+    `,`<button class="btn btn-primary" onclick="navigator.clipboard?.writeText('${cle}');toast('Copié!','ok')">📋 Copier</button><button class="btn btn-ghost" onclick="closeModal()">Fermer</button>`);
+  },300);
+}
+function showEditUser(i){
+  const u=users[i];if(!u)return;
+  const cks=classes.map((cl,j)=>`<label style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;cursor:pointer"><input type="checkbox" id="uce${j}" value="${cl}" ${u.classes?.includes(cl)?'checked':''}> ${cl}</label>`).join('');
+  const droitsCks=Object.entries(DROITS_LABELS).map(([k,lbl])=>`<label style="display:flex;align-items:center;gap:.3rem;font-size:.78rem;cursor:pointer"><input type="checkbox" id="ude_${k}" ${u.droits?.[k]?'checked':''}> ${lbl}</label>`).join('');
+  showModal(`✏️ ${u.nom}`,`
+    <div class="fr"><label>Nom</label><input id="ueNom" value="${u.nom}"></div>
+    <div style="margin-top:.5rem;font-size:.75rem;color:var(--gris)">🔑 Clé : <code style="background:var(--gris2);padding:.15rem .4rem;border-radius:4px">${u.cle}</code></div>
+    <div style="margin-top:.75rem;font-size:.8rem;font-weight:800;color:var(--bleu)">📚 Classes</div>
+    <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem">${cks}</div>
+    <div style="margin-top:.75rem;font-size:.8rem;font-weight:800;color:var(--bleu)">🔐 Droits</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:.3rem;margin-top:.3rem">${droitsCks}</div>
+    <div style="margin-top:.75rem"><label style="display:flex;align-items:center;gap:.3rem;font-size:.8rem;cursor:pointer"><input type="checkbox" id="ueActif" ${u.actif!==false?'checked':''}> Compte actif</label></div>
+  `,`<button class="btn btn-primary" onclick="doEditUser(${i})">💾 Enregistrer</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+function doEditUser(i){
+  const u=users[i];if(!u)return;
+  u.nom=document.getElementById('ueNom').value.trim()||u.nom;
+  u.classes=classes.filter((cl,j)=>document.getElementById('uce'+j)?.checked);
+  u.droits={};
+  Object.keys(DROITS_DEFAUT).forEach(k=>{u.droits[k]=document.getElementById('ude_'+k)?.checked||false;});
+  u.actif=document.getElementById('ueActif')?.checked;
+  saveAdminData();
+  logAdmin('Modification utilisateur',u.nom);
+  closeModal();renderUsers();toast('Utilisateur modifié','ok');
+}
+function regenUserKey(i){
+  const u=users[i];if(!u)return;
+  showModal('🔄 Régénérer clé',`<p>Générer une nouvelle clé pour <strong>${u.nom}</strong> ?</p><div class="alert al-warn" style="margin-top:.5rem">⚠️ L'ancienne clé ne fonctionnera plus.</div>`,
+    `<button class="btn btn-orange" onclick="doRegenKey(${i})">Oui, régénérer</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+function doRegenKey(i){
+  const u=users[i];if(!u)return;
+  const oldKey=u.cle;
+  u.cle=genUserKey();
+  saveAdminData();
+  logAdmin('Régénération clé',`${u.nom} (ancienne: ${oldKey})`);
+  closeModal();renderUsers();
+  showModal('🔑 Nouvelle clé',`
+    <p>Nouvelle clé pour <strong>${u.nom}</strong> :</p>
+    <div style="background:var(--bleu3);padding:1rem;border-radius:var(--r2);font-family:'JetBrains Mono',monospace;font-size:1.2rem;font-weight:800;text-align:center;color:var(--bleu);letter-spacing:2px">${u.cle}</div>
+  `,`<button class="btn btn-primary" onclick="navigator.clipboard?.writeText('${u.cle}');toast('Copié!','ok')">📋 Copier</button><button class="btn btn-ghost" onclick="closeModal()">Fermer</button>`);
+}
+function confirmDelUser(i){
+  const u=users[i];if(!u)return;
+  showModal('🗑️ Supprimer',`<p>Supprimer l'évaluateur <strong>${u.nom}</strong> ?</p><div class="alert al-danger" style="margin-top:.5rem">⚠️ Action irréversible.</div>`,
+    `<button class="btn btn-rouge" onclick="doDelUser(${i})">Oui, supprimer</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+function doDelUser(i){
+  const u=users[i];if(!u)return;
+  logAdmin('Suppression utilisateur',u.nom);
+  users.splice(i,1);
+  saveAdminData();closeModal();renderUsers();toast('Utilisateur supprimé','ok');
+}
+function showAddClasse(){
+  showModal('➕ Nouvelle classe',`<div class="fr"><label>Nom de la classe</label><input id="clNom" placeholder="CAP IFCA 3"></div>`,
+    `<button class="btn btn-teal" onclick="doAddClasse()">✅ Créer</button><button class="btn btn-ghost" onclick="closeModal()">Annuler</button>`);
+}
+function doAddClasse(){
+  const nom=document.getElementById('clNom').value.trim();
+  if(!nom){toast('Nom obligatoire','err');return;}
+  if(classes.includes(nom)){toast('Classe existe déjà','warn');return;}
+  classes.push(nom);
+  saveAdminData();
+  logAdmin('Création classe',nom);
+  closeModal();renderClasses();toast('Classe créée','ok');
+}
+function delClasse(i){
+  const cl=classes[i];if(!cl)return;
+  if(!confirm(`Supprimer la classe "${cl}" ?`))return;
+  logAdmin('Suppression classe',cl);
+  classes.splice(i,1);
+  saveAdminData();renderClasses();toast('Classe supprimée','ok');
+}
+function renderAdminTab(){
+  loadAdminData();
+  renderUsers();
+  renderClasses();
+  renderAdminJournal();
+  renderAdminBackups();
+}
+
 /* ═══ [M] INIT ═══ */
 async function initApp(){
   await initDB();
-  loadLocal();loadCfgToForm();updateAll();syncAll();setPhase('formatif');
+  loadLocal();loadAdminData();checkAdmin();loadCfgToForm();updateAll();syncAll();setPhase('formatif');
   startAutoBackup();
   // [Phase 3] Deep-link : ?eleve=ELV-001&mode=ep2
   handleDeepLink();
