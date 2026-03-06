@@ -82,8 +82,11 @@ function doGet(e) {
     if (action === 'verifyEleveToken') {
       return out(verifyEleveToken(p.token));
     }
+    if (action === 'verifyTuteurToken') {
+      return out(verifyTuteurToken(p.eleve, p.tuteur));
+    }
     if (action === 'ping') {
-      return out({ ok: true, version: 'TT-4.7', ts: new Date().toISOString() });
+      return out({ ok: true, version: 'TT-4.8', ts: new Date().toISOString() });
     }
 
     const role = auth(p);
@@ -215,6 +218,40 @@ function verifyEleveToken(token) {
 function findEleveByToken(token) {
   const rows = getSheetData(SH.ELEVES);
   return rows.find(r => r.token_eleve === token) || null;
+}
+
+// ═══ [TUTEUR-1] VÉRIFICATION TOKEN TUTEUR ═══
+function verifyTuteurToken(eleveCode, tuteurToken) {
+  if (!eleveCode || !tuteurToken) {
+    return { success: false, error: 'Paramètres manquants (eleve + tuteur requis)' };
+  }
+  
+  const eleve = findEleve(eleveCode);
+  if (!eleve) {
+    return { success: false, error: 'Élève introuvable : ' + eleveCode };
+  }
+  
+  // Vérifier le token tuteur
+  if (eleve.token_tuteur !== tuteurToken) {
+    return { success: false, error: 'Token tuteur invalide' };
+  }
+  
+  // Token OK — renvoyer les infos élève (sans données sensibles)
+  return {
+    success: true,
+    eleve: {
+      code: eleve.code,
+      nom: eleve.nom,
+      prenom: eleve.prenom,
+      classe: eleve.classe,
+      entreprise_nom: eleve.pfmp1_entreprise || eleve.pfmp2_entreprise || '',
+      tuteur_nom: eleve.pfmp1_tuteur_nom || eleve.pfmp2_tuteur_nom || '',
+      pfmp_debut: eleve.pfmp1_date_debut || eleve.pfmp2_date_debut || '',
+      pfmp_fin: eleve.pfmp1_date_fin || eleve.pfmp2_date_fin || '',
+    },
+    // Récupérer les évaluations tuteur existantes
+    evalTuteur: getEvalTuteur(eleveCode)
+  };
 }
 
 // ═══ [ELEVE-2] DONNÉES ÉLÈVE COMPLÈTES ═══

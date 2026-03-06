@@ -126,12 +126,16 @@ video{width:100%;border-radius:var(--r);background:#000;display:block;}
 /* NIVEAU GLOBAL */
 .niv-global{display:flex;align-items:center;gap:.5rem;background:var(--gris2);border-radius:var(--r2);padding:.65rem .85rem;margin-bottom:.75rem;}
 .niv-lbl{font-size:.75rem;font-weight:800;color:var(--bleu);flex-shrink:0;}
-.niv-btns{display:flex;gap:.35rem;flex-wrap:wrap;}
-.nb{padding:.35rem .7rem;border-radius:var(--r2);border:2px solid transparent;font-weight:800;font-size:.78rem;cursor:pointer;transition:var(--t);background:#fff;}
-.nb.PM{color:#1a7d3e;border-color:#ccc;}.nb.PM.sel{background:#d4f4e2;border-color:#1a7d3e;}
-.nb.M{color:var(--bleu2);border-color:#ccc;}.nb.M.sel{background:var(--bleu3);border-color:var(--bleu2);}
-.nb.EC{color:#a06e00;border-color:#ccc;}.nb.EC.sel{background:var(--jaune2);border-color:var(--jaune);}
-.nb.NE{color:var(--gris);border-color:#ccc;}.nb.NE.sel{background:var(--gris3);border-color:var(--gris);}
+.niv-btns{display:flex;gap:.4rem;flex-wrap:wrap;}
+.nb{padding:.6rem 1rem;border-radius:10px;border:3px solid transparent;font-weight:800;font-size:.9rem;cursor:pointer;transition:var(--t);min-height:50px;min-width:56px;display:flex;align-items:center;justify-content:center;}
+.nb.PM{background:#e8f8e8;color:#1a7d3e;}.nb.PM.sel{background:var(--vert);color:#fff;border-color:#1a7d3e;box-shadow:0 3px 10px rgba(39,174,96,.4);transform:scale(1.05);}
+.nb.M{background:#e0f0ff;color:var(--bleu2);}.nb.M.sel{background:var(--bleu2);color:#fff;border-color:var(--bleu);box-shadow:0 3px 10px rgba(45,90,140,.4);transform:scale(1.05);}
+.nb.EC{background:#fffacd;color:#7a5000;}.nb.EC.sel{background:var(--jaune);color:#fff;border-color:#b07000;box-shadow:0 3px 10px rgba(243,156,18,.4);transform:scale(1.05);}
+.nb.NE{background:var(--gris2);color:var(--gris);}.nb.NE.sel{background:var(--gris);color:#fff;border-color:#555;box-shadow:0 3px 10px rgba(0,0,0,.25);transform:scale(1.05);}
+.nb.NA{background:#fee;color:var(--rouge);}.nb.NA.sel{background:var(--rouge);color:#fff;border-color:#a02020;box-shadow:0 3px 10px rgba(231,76,60,.4);transform:scale(1.05);}
+.nb:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+.comp-block.comp-locked{border:2px solid var(--orange);background:#fffaf0;}
+.lock-btn{margin-top:.5rem;}
 
 /* TÂCHES */
 .taches-titre{font-size:.72rem;font-weight:800;color:var(--gris);text-transform:uppercase;letter-spacing:.3px;margin-bottom:.4rem;}
@@ -346,8 +350,9 @@ video{width:100%;border-radius:var(--r);background:#000;display:block;}
       <div id="scanMsg"></div>
 
       <div style="border-top:2px solid var(--gris3);padding-top:.75rem;margin-top:.25rem">
-        <p style="font-size:.75rem;font-weight:700;color:var(--gris);text-align:center;margin-bottom:.6rem">— ou saisir le code manuellement —</p>
+        <p style="font-size:.75rem;font-weight:700;color:var(--gris);text-align:center;margin-bottom:.6rem">— ou saisir manuellement —</p>
         <div class="fr"><label>Code stagiaire</label><input id="codeManuel" placeholder="ex : ELV-001" style="text-transform:uppercase"></div>
+        <div class="fr"><label>Token tuteur</label><input id="tokenManuel" placeholder="ex : ABCD-EFGH-1234" style="text-transform:uppercase"></div>
         <button class="btn btn-ghost" onclick="chargerEleveManuel()">Charger le stagiaire</button>
       </div>
     </div>
@@ -533,14 +538,15 @@ const COMPORTEMENTS=[
 /* ═══ ÉTAT ═══ */
 let entreprise={nom:'',adresse:'',cp:'',ville:'',dirigeant:'',tels:[],emails:[]};
 let tuteurs=[{nom:'',tel:'',email:''}];
-let eleveCode=null,eleveData=null;
+let eleveCode=null,eleveData=null,tuteurToken=null;
 let evalData={};   // {competence: {niveau, taches:{tache:true/false}}}
+let compLocks={};  // Verrouillage par compétence
 let behavData={};  // {key: 'ok'|'ko'|null}
 let telsCount=1,emailsCount=1,tuteursCount=1;
 
-const API_URL='https://script.google.com/macros/s/AKfycbzTMUOksbOqGMCElJAlWNBXcYdfUBXERF3WHDKbII1U-erkcZhGozij9moF-DKtZNLjHA/exec';
-const _cfg=JSON.parse(localStorage.getItem('inerweb-tt-cfg')||'{}');
-const API_KEY=_cfg.apiKey||'';
+// ⚠️ SÉCURITÉ : Le tuteur n'utilise PAS la clé prof
+// Il s'authentifie avec son propre token_tuteur
+const API_URL='https://script.google.com/macros/s/AKfycbzlTtAjTpQF6piZe2pOh8gwal1sV0c-EJJzcvU5Kvly_U02apW4yN4Q8iUSL-SRDhG4/exec';
 
 /* ═══ NAVIGATION ═══ */
 function goPage(id){
@@ -644,32 +650,56 @@ function handleQR(url){
   try{
     const u=new URL(url);
     const code=u.searchParams.get('eleve');
-    const token=u.searchParams.get('token');
-    if(code)chargerEleve(code,token);
-    else toast('QR non reconnu','warn');
+    // Le QR tuteur contient ?eleve=XXX&tuteur=TOKEN_TUTEUR
+    const token=u.searchParams.get('tuteur')||u.searchParams.get('token');
+    if(code&&token){
+      chargerEleve(code,token);
+    }else if(code){
+      toast('Token tuteur manquant dans le QR','err');
+    }else{
+      toast('QR non reconnu','warn');
+    }
   }catch{toast('QR invalide','err');}
 }
 function chargerEleveManuel(){
   const code=document.getElementById('codeManuel').value.trim().toUpperCase();
-  if(!code){toast('Saisir un code','err');return;}
-  chargerEleve(code,'');
+  const token=document.getElementById('tokenManuel')?.value.trim()||'';
+  if(!code){toast('Saisir un code élève','err');return;}
+  if(!token){toast('Saisir le token tuteur','err');return;}
+  chargerEleve(code,token);
 }
 
-/* ═══ CHARGEMENT STAGIAIRE ═══ */
+/* ═══ CHARGEMENT STAGIAIRE (via token TUTEUR) ═══ */
 async function chargerEleve(code,token){
   showSpinner();
   try{
-    const p=new URLSearchParams({action:'getEleve',eleve:code,key:API_KEY});
+    // ⚠️ SÉCURITÉ : On utilise verifyTuteurToken, PAS la clé prof
+    const p=new URLSearchParams({action:'verifyTuteurToken',eleve:code,tuteur:token});
     const r=await fetch(`${API_URL}?${p}`,{redirect:'follow'});
     const d=await r.json();
-    if(d.error)throw new Error(d.error);
-    eleveCode=code;eleveData=d;
-  }catch{
+    if(!d.success){
+      hideSpinner();
+      toast(d.error||'Accès refusé','err');
+      return;
+    }
+    // Token valide — stocker pour les appels suivants
     eleveCode=code;
+    tuteurToken=token;
+    eleveData=d.eleve;
+    // Charger évaluations tuteur existantes si présentes
+    if(d.evalTuteur&&d.evalTuteur.length){
+      // TODO: pré-remplir evalData avec les données existantes
+    }
+  }catch(e){
+    // Mode hors-ligne — on permet la saisie locale
+    eleveCode=code;
+    tuteurToken=token;
     eleveData={code,nom:'Stagiaire',prenom:code,classe:'CAP IFCA'};
-    toast('Hors-ligne — données limitées','warn');
+    toast('Hors-ligne — données seront envoyées plus tard','warn');
   }
   evalData={};behavData={};
+  // Charger les locks et évaluations sauvegardées pour cet élève
+  chargerLocksEleve(code);
   hideSpinner();
   renderStagiaireInfo();
   renderEval();
@@ -698,26 +728,50 @@ const sid=c=>c.replace(/\./g,'_'); // C3.1 → C3_1 (IDs sans points)
 function renderEval(){
   const c=document.getElementById('evalContenu');
   c.innerHTML='';
+  
+  // Légende en haut
+  const legendHtml=`<div class="card" style="margin-bottom:.75rem">
+    <div class="card-title">📋 Légende des niveaux</div>
+    <div style="display:flex;flex-wrap:wrap;gap:.4rem;padding:.5rem;background:#f8f9fa;border-radius:8px">
+      <span style="font-size:.7rem;font-weight:700;padding:.3rem .5rem;border-radius:4px;background:var(--gris2);color:var(--gris)">NE = Non Évalué</span>
+      <span style="font-size:.7rem;font-weight:700;padding:.3rem .5rem;border-radius:4px;background:#fee;color:var(--rouge)">NA = Non Acquis</span>
+      <span style="font-size:.7rem;font-weight:700;padding:.3rem .5rem;border-radius:4px;background:#fffacd;color:#7a5000">EC = En Cours</span>
+      <span style="font-size:.7rem;font-weight:700;padding:.3rem .5rem;border-radius:4px;background:#e8f8e8;color:#1a7d3e">M = Maîtrisé</span>
+      <span style="font-size:.7rem;font-weight:700;padding:.3rem .5rem;border-radius:4px;background:#e0f0ff;color:var(--bleu2)">PM = Parfait</span>
+    </div>
+  </div>`;
+  c.innerHTML=legendHtml;
+  
   COMP_EP2.forEach(comp=>{
     const id=sid(comp.code);
     if(!evalData[comp.code])evalData[comp.code]={niveau:'NE',taches:{}};
     const niv=evalData[comp.code].niveau||'NE';
+    const isLocked=compLocks[comp.code]||false;
+    const hasValue=niv&&niv!=='NE';
     const taches=TACHES[comp.code]||[];
     const tachesHtml=taches.map((t,i)=>{
       const st=evalData[comp.code].taches[i];
-      return`<div class="tache-item${st===true?' done':st===false?' nope':''}" onclick="cycleTache('${comp.code}',${i},this)">
-        <span class="tache-ico">${st===true?'✅':st===false?'❌':'⬜'}</span>
-        <span class="tache-txt">${t}</span>
-      </div>`;
+      const onclick=isLocked?'':("cycleTache('"+comp.code+"',"+i+",this)");
+      return '<div class="tache-item'+(st===true?' done':st===false?' nope':'')+(isLocked?' disabled':'')+'" onclick="'+onclick+'">'+
+        '<span class="tache-ico">'+(st===true?'✅':st===false?'❌':'⬜')+'</span>'+
+        '<span class="tache-txt">'+t+'</span>'+
+      '</div>';
     }).join('');
-    const nivBtns=['PM','M','EC','NE'].map(n=>`<button class="nb ${n}${niv===n?' sel':''}" onclick="setNiv('${comp.code}','${n}',this)">${n}</button>`).join('');
+    // Ordre: NE, NA, EC, M, PM
+    const nivBtns=['NE','NA','EC','M','PM'].map(n=>`<button class="nb ${n}${niv===n?' sel':''}" ${isLocked?'disabled':''} onclick="setNiv('${comp.code}','${n}',this)">${n}</button>`).join('');
+    // Bouton verrouiller/déverrouiller
+    const lockBtn=isLocked
+      ?`<button class="btn btn-orange btn-sm lock-btn" onclick="unlockComp('${comp.code}')" style="width:auto">🔓 Déverrouiller</button>`
+      :(hasValue?`<button class="btn btn-ghost btn-sm lock-btn" onclick="lockComp('${comp.code}')" style="width:auto">🔒 Verrouiller</button>`:'');
+    
     const el=document.createElement('div');
-    el.className='comp-block';
+    el.className='comp-block'+(isLocked?' comp-locked':'');
     el.innerHTML=`
       <div class="comp-hdr" id="hdr-${id}" onclick="toggleComp('${comp.code}')">
         <span class="comp-code">${comp.code}</span>
         <span class="comp-nom">${comp.full}</span>
         ${comp.obl?'<span class="comp-oblig">✱ Oblig.</span>':''}
+        ${isLocked?'<span style="color:var(--orange);font-size:.8rem">🔒</span>':''}
         <span class="comp-arrow">▼</span>
       </div>
       <div class="comp-body" id="body-${id}">
@@ -726,10 +780,11 @@ function renderEval(){
           <span class="niv-lbl">Niveau global :</span>
           <div class="niv-btns">${nivBtns}</div>
         </div>
+        ${lockBtn}
         ${taches.length?`<div class="taches-titre">Tâches observées :</div>${tachesHtml}`:''}
         <div class="fr" style="margin-top:.5rem;margin-bottom:0">
           <label>Observation (optionnel)</label>
-          <textarea class="obs-area" id="obs-${id}" placeholder="Remarque sur cette compétence..." style="min-height:60px" oninput="evalData['${comp.code}'].obs=this.value"></textarea>
+          <textarea class="obs-area" id="obs-${id}" placeholder="Remarque sur cette compétence..." style="min-height:60px" ${isLocked?'disabled':''} oninput="evalData['${comp.code}'].obs=this.value">${evalData[comp.code].obs||''}</textarea>
         </div>
       </div>`;
     c.appendChild(el);
@@ -746,9 +801,32 @@ function toggleComp(code){
 }
 
 function setNiv(code,niv,btn){
+  if(compLocks[code]){toast('Compétence verrouillée — cliquez 🔓 pour modifier','warn');return;}
   evalData[code].niveau=niv;
   btn.closest('.niv-btns').querySelectorAll('.nb').forEach(b=>b.classList.remove('sel'));
   btn.classList.add('sel');
+  toast(`${code} → ${niv}`,'ok');
+  // Auto-verrouillage si niveau != NE
+  if(niv!=='NE'){
+    compLocks[code]=true;
+    sauvegarderLocal();
+    renderEval();
+    toast('🔒 Compétence verrouillée','info');
+  }
+}
+
+function lockComp(code){
+  compLocks[code]=true;
+  sauvegarderLocal();
+  toast(`🔒 ${code} verrouillée`,'ok');
+  renderEval();
+}
+
+function unlockComp(code){
+  delete compLocks[code];
+  sauvegarderLocal();
+  toast(`🔓 ${code} déverrouillée`,'ok');
+  renderEval();
 }
 
 function cycleTache(code,i,el){
@@ -797,6 +875,11 @@ function setBehav(key,niveau){
 
 /* ═══ ENVOI ═══ */
 async function envoyer(){
+  if(!tuteurToken){
+    toast('Session expirée — rescannez le QR','err');
+    return;
+  }
+  
   const obs=document.getElementById('obsGlobal').value.trim();
   const pfmp=document.getElementById('selPfmp').value;
   const phase=document.getElementById('selPhase').value;
@@ -812,21 +895,34 @@ async function envoyer(){
     comportement:behavData,
     observation:obs,
     timestamp:new Date().toISOString(),
+    // ⚠️ SÉCURITÉ : Statut "proposé" — seul le prof peut valider
+    statut:'proposé',
   };
 
   showSpinner();
   try{
-    const p=new URLSearchParams({action:'saveTuteurEval',eleve:eleveCode,key:API_KEY,data:JSON.stringify(payload)});
-    await fetch(`${API_URL}?${p}`,{redirect:'follow'});
+    // ⚠️ SÉCURITÉ : On utilise le token TUTEUR, pas la clé prof
+    const p=new URLSearchParams({
+      action:'saveEvalTuteur',
+      eleve:eleveCode,
+      tuteur:tuteurToken,
+      data:JSON.stringify(payload)
+    });
+    const r=await fetch(`${API_URL}?${p}`,{redirect:'follow'});
+    const d=await r.json();
+    if(d.error){
+      throw new Error(d.error);
+    }
     hideSpinner();
-    toast('Évaluation envoyée ✓','ok');
+    toast('Évaluation envoyée ✓ (en attente validation prof)','ok');
     setTimeout(()=>{
       if(confirm('Évaluer un autre stagiaire ?'))goPage('scan');
     },1500);
-  }catch{
+  }catch(e){
     hideSpinner();
+    // Sauvegarder en local pour envoi ultérieur
     const pending=JSON.parse(localStorage.getItem('inerweb-tuteur-pending')||'[]');
-    pending.push({eleve:eleveCode,payload});
+    pending.push({eleve:eleveCode,tuteur:tuteurToken,payload});
     localStorage.setItem('inerweb-tuteur-pending',JSON.stringify(pending));
     toast('Sauvegardé hors-ligne — envoi au prochain réseau','warn');
   }
@@ -835,6 +931,11 @@ async function envoyer(){
 /* ═══ PERSISTANCE LOCALE ═══ */
 function sauvegarderLocal(){
   localStorage.setItem('inerweb-tuteur-data',JSON.stringify({entreprise,tuteurs}));
+  // Sauvegarder les locks par élève
+  if(eleveCode){
+    localStorage.setItem('inerweb-tuteur-locks-'+eleveCode,JSON.stringify(compLocks));
+    localStorage.setItem('inerweb-tuteur-eval-'+eleveCode,JSON.stringify(evalData));
+  }
 }
 function chargerLocal(){
   const d=JSON.parse(localStorage.getItem('inerweb-tuteur-data')||'{}');
@@ -858,6 +959,11 @@ function chargerLocal(){
     }
     tuteurs.slice(1).forEach(t=>addTuteur(t));
   }
+}
+function chargerLocksEleve(code){
+  compLocks=JSON.parse(localStorage.getItem('inerweb-tuteur-locks-'+code)||'{}');
+  const savedEval=JSON.parse(localStorage.getItem('inerweb-tuteur-eval-'+code)||'{}');
+  if(Object.keys(savedEval).length)evalData=savedEval;
 }
 
 /* ═══ UTILITAIRES ═══ */
