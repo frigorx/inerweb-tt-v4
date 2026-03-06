@@ -114,8 +114,8 @@ body.show-app #screen-app{display:flex;}
 .b-ep2{background:var(--bleu3);color:var(--bleu2);}.b-ep3{background:var(--violet2);color:var(--violet);}
 .b-vert{background:var(--vert2);color:var(--vert);}.b-rouge{background:var(--rouge2);color:var(--rouge);}
 .b-jaune{background:var(--jaune2);color:var(--jaune);}.b-gris{background:var(--gris2);color:var(--gris);}
-.lv-pm{background:#d4f4e2;color:#1a7d3e;}.lv-m{background:var(--bleu3);color:var(--bleu2);}
-.lv-ec{background:var(--jaune2);color:#a06e00;}.lv-ne{background:var(--gris2);color:var(--gris);}
+.lv-pm{background:var(--bleu3);color:var(--bleu2);}.lv-m{background:#d4f4e2;color:#1a7d3e;}
+.lv-ec{background:var(--jaune2);color:#a06e00;}.lv-na{background:var(--rouge2);color:var(--rouge);}.lv-ne{background:var(--gris2);color:var(--gris);}
 .lv-ne-abs{background:#fde8e6;color:var(--rouge);}.lv-ne-imp{background:var(--violet2);color:var(--violet);}
 .lv-ne-non{background:var(--jaune2);color:#7a5000;}.lv-ne-ref{background:#ffe0cc;color:#c0390f;}
 .alert{padding:.7rem .9rem;border-radius:var(--r2);font-size:.8rem;margin-bottom:.5rem;}
@@ -175,9 +175,9 @@ body.show-app #screen-app{display:flex;}
 .crit-nom{font-size:.75rem;font-weight:600;flex:1;min-width:120px;}
 .crit-btns{display:flex;gap:.2rem;}
 .cb{padding:.35rem .6rem;border-radius:6px;border:2px solid transparent;font-weight:800;font-size:.72rem;cursor:pointer;transition:var(--t);background:var(--gris2);min-height:36px;}
-.cb.b-PM{color:#1a7d3e;}.cb.b-M{color:var(--bleu2);}.cb.b-EC{color:#a06e00;}.cb.b-NE{color:var(--gris);}
-.cb.b-PM.sel{background:#d4f4e2;border-color:#1a7d3e;}.cb.b-M.sel{background:var(--bleu3);border-color:var(--bleu2);}
-.cb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.cb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}
+.cb.b-NE{color:var(--gris);}.cb.b-NA{color:var(--rouge);}.cb.b-EC{color:#a06e00;}.cb.b-M{color:#1a7d3e;}.cb.b-PM{color:var(--bleu2);}
+.cb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}.cb.b-NA.sel{background:var(--rouge2);border-color:var(--rouge);}
+.cb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.cb.b-M.sel{background:#d4f4e2;border-color:#1a7d3e;}.cb.b-PM.sel{background:var(--bleu3);border-color:var(--bleu2);}
 .cb.b-NE-ABS.sel{background:#fde8e6;border-color:var(--rouge);}.cb.b-NE-IMP.sel{background:var(--violet2);border-color:var(--violet);}
 .cb.b-NE-NON.sel{background:var(--jaune2);border-color:#7a5000;}.cb.b-NE-REF.sel{background:#ffe0cc;border-color:#c0390f;}
 .ne-dropdown{position:relative;display:inline-block;}
@@ -193,9 +193,9 @@ body.show-app #screen-app{display:flex;}
 .cg-lbl{font-size:.75rem;font-weight:800;color:var(--bleu);flex-shrink:0;}
 .gb-wrap{display:flex;gap:.35rem;}
 .gb{padding:.4rem .75rem;border-radius:var(--r2);border:2px solid transparent;font-weight:800;font-size:.82rem;cursor:pointer;transition:var(--t);background:#fff;min-height:40px;}
-.gb.b-PM{color:#1a7d3e;}.gb.b-M{color:var(--bleu2);}.gb.b-EC{color:#a06e00;}.gb.b-NE{color:var(--gris);}
-.gb.b-PM.sel{background:#d4f4e2;border-color:#1a7d3e;}.gb.b-M.sel{background:var(--bleu3);border-color:var(--bleu2);}
-.gb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.gb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}
+.gb.b-NE{color:var(--gris);}.gb.b-NA{color:var(--rouge);}.gb.b-EC{color:#a06e00;}.gb.b-M{color:#1a7d3e;}.gb.b-PM{color:var(--bleu2);}
+.gb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}.gb.b-NA.sel{background:var(--rouge2);border-color:var(--rouge);}
+.gb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.gb.b-M.sel{background:#d4f4e2;border-color:#1a7d3e;}.gb.b-PM.sel{background:var(--bleu3);border-color:var(--bleu2);}
 .gb.b-NE-ABS{color:var(--rouge);}.gb.b-NE-IMP{color:var(--violet);}.gb.b-NE-NON{color:#7a5000;}.gb.b-NE-REF{color:#c0390f;}
 .gb.b-NE-ABS.sel{background:#fde8e6;border-color:var(--rouge);}.gb.b-NE-IMP.sel{background:var(--violet2);border-color:var(--violet);}
 .gb.b-NE-NON.sel{background:var(--jaune2);border-color:#7a5000;}.gb.b-NE-REF.sel{background:#ffe0cc;border-color:#c0390f;}
@@ -632,10 +632,10 @@ const SIT_INFO={
   C:{nom:"Communication / Documents",duree:"20 min",comp:["C1.1"]},
 };
 const COEF_OBL=1.2;
-const NV=['PM','M','EC','NE'];
+const NV=['NE','NA','EC','M','PM'];
 const NE_TYPES=['NE-ABS','NE-IMP','NE-NON','NE-REF'];
-const NV_PCT={PM:100,M:70,EC:35,NE:0,'NE-ABS':0,'NE-IMP':0,'NE-NON':0,'NE-REF':0};
-const NV_LBL={PM:'Pleinement Maîtrisé',M:'Maîtrisé',EC:'En Cours',NE:'Non Évalué','NE-ABS':'Absent','NE-IMP':'Impossible','NE-NON':'Non présenté','NE-REF':'Refus élève'};
+const NV_PCT={NE:0,NA:0,EC:35,M:70,PM:100,'NE-ABS':0,'NE-IMP':0,'NE-NON':0,'NE-REF':0};
+const NV_LBL={NE:'Non Évalué',NA:'Non Acquis',EC:'En Cours',M:'Maîtrisé',PM:'Parfaitement Maîtrisé','NE-ABS':'Absent','NE-IMP':'Impossible','NE-NON':'Non présenté','NE-REF':'Refus élève'};
 const NE_MOTIFS={'NE-ABS':'Élève absent lors de l\'évaluation','NE-IMP':'Conditions ne permettant pas l\'évaluation','NE-NON':'Compétence non travaillée','NE-REF':'Refus de l\'élève de réaliser la tâche'};
 
 /* ═══ [B] ÉTAT GLOBAL ═══ */
@@ -968,14 +968,13 @@ function compBlock(comp,ep,ctx){
   const locked=notes[cur]?.[ep]?.cloture;
   const critsHtml=crits.map(cr=>{
     const cv=getVal(cur,ep,comp.code,cr);
-    const cvBase=cv?.startsWith('NE-')?'NE':cv;
-    const btns=['PM','M','EC'].map(n=>`<button class="cb b-${n}${cv===n?' sel':''}" ${locked?'disabled':''} onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
-    const neMenu=`<div class="ne-dropdown"><button class="cb b-NE${cv?.startsWith('NE')?' sel':''}" ${locked?'disabled':''} onclick="toggleNEMenu(this,'crit','${comp.code}','${encodeURIComponent(cr)}','${ep}')" title="Non Évalué">NE${cv?.startsWith('NE-')?' ▾':''}</button><div class="ne-menu" id="nem-c-${comp.code}-${encodeURIComponent(cr)}"><button class="ne-abs" onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','NE-ABS','${ep}')">🚫 Absent</button><button class="ne-imp" onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','NE-IMP','${ep}')">⚙️ Impossible</button><button class="ne-non" onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','NE-NON','${ep}')">📋 Non présenté</button><button class="ne-ref" onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','NE-REF','${ep}')">✋ Refus élève</button></div></div>`;
-    return `<div class="crit-item"><span class="crit-nom">${cr}</span><div class="crit-btns">${btns}${neMenu}</div></div>`;
+    // Ordre: NE, NA, EC, M, PM (gris, rouge, jaune, vert, bleu)
+    const btns=['NE','NA','EC','M','PM'].map(n=>`<button class="cb b-${n}${cv===n?' sel':''}" ${locked?'disabled':''} onclick="setCrit('${comp.code}','${encodeURIComponent(cr)}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
+    return `<div class="crit-item"><span class="crit-nom">${cr}</span><div class="crit-btns">${btns}</div></div>`;
   }).join('');
-  const gbBtns=['PM','M','EC'].map(n=>`<button class="gb b-${n}${lv===n?' sel':''}" ${locked?'disabled':''} onclick="setLv('${comp.code}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
-  const neMenuGlob=`<div class="ne-dropdown"><button class="gb b-NE${lv?.startsWith('NE')?' sel':''}" ${locked?'disabled':''} onclick="toggleNEMenu(this,'glob','${comp.code}','','${ep}')" title="Non Évalué">NE${lv?.startsWith('NE-')?' ▾':''}</button><div class="ne-menu" id="nem-g-${comp.code}"><button class="ne-abs" onclick="setLv('${comp.code}','NE-ABS','${ep}')">🚫 Absent</button><button class="ne-imp" onclick="setLv('${comp.code}','NE-IMP','${ep}')">⚙️ Impossible</button><button class="ne-non" onclick="setLv('${comp.code}','NE-NON','${ep}')">📋 Non présenté</button><button class="ne-ref" onclick="setLv('${comp.code}','NE-REF','${ep}')">✋ Refus élève</button></div></div>`;
-  const lvDisplay=lv?.startsWith('NE-')?`${lv.replace('NE-','NE: ')}`:lv||'NE';
+  // Ordre: NE, NA, EC, M, PM pour les boutons globaux
+  const gbBtns=['NE','NA','EC','M','PM'].map(n=>`<button class="gb b-${n}${lv===n?' sel':''}" ${locked?'disabled':''} onclick="setLv('${comp.code}','${n}','${ep}')" title="${NV_LBL[n]}">${n}</button>`).join('');
+  const lvDisplay=lv||'NE';
   return `<div class="comp-block">
     <div class="comp-hdr" onclick="toggleComp(this)">
       <span class="comp-code">${comp.code}</span>
@@ -988,7 +987,7 @@ function compBlock(comp,ep,ctx){
     <div class="comp-body">
       <div class="comp-full">${comp.full}</div>
       ${critsHtml?`<div class="crit-list">${critsHtml}</div>`:''}
-      <div class="comp-global"><span class="cg-lbl">Niveau global :</span><div class="gb-wrap">${gbBtns}${neMenuGlob}</div></div>
+      <div class="comp-global"><span class="cg-lbl">Niveau global :</span><div class="gb-wrap">${gbBtns}</div></div>
       <textarea class="obs-area" placeholder="Observation sur ${comp.code}..." rows="2" ${locked?'disabled':''} onblur="saveObs('${comp.code}','${ep}',this.value)">${obs}</textarea>
     </div>
   </div>`;
@@ -1016,12 +1015,19 @@ function getObs(code,ep,comp){
 }
 async function setCrit(comp,critEnc,niv,ep){
   if(notes[cur]?.[ep]?.cloture){toast('Épreuve clôturée','err');return;}
-  await pushVal({epreuve:ep,competence:comp,critere:decodeURIComponent(critEnc),niveau:niv,contexte:ep==='EP2'?curCtx:curSit});
+  const crit=decodeURIComponent(critEnc);
+  const currentVal=getVal(cur,ep,comp,crit);
+  // Toggle: si même niveau, on efface (remet NE)
+  const newNiv=(currentVal===niv)?'NE':niv;
+  await pushVal({epreuve:ep,competence:comp,critere:crit,niveau:newNiv,contexte:ep==='EP2'?curCtx:curSit});
   if(ep==='EP2')renderEP2();else renderEP3();
 }
 async function setLv(comp,niv,ep){
   if(notes[cur]?.[ep]?.cloture){toast('Épreuve clôturée','err');return;}
-  await pushVal({epreuve:ep,competence:comp,critere:'',niveau:niv,contexte:ep==='EP2'?curCtx:curSit});
+  const currentLv=getLv(cur,ep,comp);
+  // Toggle: si même niveau, on efface (remet NE)
+  const newNiv=(currentLv===niv)?'NE':niv;
+  await pushVal({epreuve:ep,competence:comp,critere:'',niveau:newNiv,contexte:ep==='EP2'?curCtx:curSit});
   if(ep==='EP2')renderEP2();else renderEP3();
   renderDash();
 }
@@ -1368,9 +1374,9 @@ function renderBilan(){
 }
 function bilanTable(det){
   const rows=det.map(d=>{
-    const lvBase=d.lv?.startsWith('NE-')?'NE':d.lv;
-    const cls={PM:'color:var(--vert)',M:'color:var(--bleu2)',EC:'color:var(--jaune)',NE:'color:var(--gris)','NE-ABS':'color:var(--rouge)','NE-IMP':'color:var(--violet)','NE-NON':'color:#7a5000','NE-REF':'color:#c0390f'}[d.lv]||'color:var(--gris)';
-    const lvDisplay=d.lv?.startsWith('NE-')?d.lv:d.lv;
+    // Couleurs: NE=gris, NA=rouge, EC=jaune, M=vert, PM=bleu
+    const cls={NE:'color:var(--gris)',NA:'color:var(--rouge)',EC:'color:var(--jaune)',M:'color:#1a7d3e',PM:'color:var(--bleu2)'}[d.lv]||'color:var(--gris)';
+    const lvDisplay=d.lv||'NE';
     return `<tr><td><strong>${d.code}</strong></td><td>${d.nom}${d.obl?' <span style="color:var(--orange);font-size:.6rem">✱</span>':''}</td><td style="${cls};font-weight:800">${lvDisplay}</td><td>${d.pts}/${d.max}</td></tr>`;
   }).join('');
   return `<table class="bilan-table"><thead><tr><th>Code</th><th>Compétence</th><th>Niveau</th><th>Pts</th></tr></thead><tbody>${rows}</tbody></table>`;
