@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>inerWeb TT 4.0 — Professeur</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -61,7 +64,7 @@ body.show-config #screen-config{display:flex;}
 /* [3] Layout + tabs */
 #screen-app{display:none;flex-direction:column;min-height:100dvh;}
 body.show-app #screen-app{display:flex;}
-.main-content{flex:1;overflow-y:auto;padding-bottom:76px;}
+.main-content{flex:1;overflow-y:auto;padding-bottom:100px;}
 .tab-pane{display:none;}.tab-pane.active{display:block;}
 .tab-inner{max-width:900px;margin:0 auto;padding:1rem;}
 
@@ -80,12 +83,12 @@ body.show-app #screen-app{display:flex;}
 .sync-dot.syncing{background:var(--jaune);animation:pulse 1s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 .bottom-nav{position:fixed;bottom:0;left:0;right:0;z-index:200;background:#fff;border-top:2px solid var(--gris3);display:flex;padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 16px rgba(0,0,0,.08);}
-.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.45rem .2rem;border:none;background:none;cursor:pointer;color:var(--gris);font-size:.52rem;font-weight:700;gap:.15rem;transition:var(--t);position:relative;min-width:0;}
-.nav-btn .ni{font-size:1.1rem;line-height:1;}
-.nav-btn:hover{color:var(--bleu2);}
-.nav-btn.active{color:var(--bleu);}
-.nav-btn.active::after{content:'';position:absolute;top:0;left:15%;right:15%;height:3px;background:var(--orange);border-radius:0 0 4px 4px;}
-.nav-badge{position:absolute;top:.3rem;right:calc(50% - 1.1rem);background:var(--rouge);color:#fff;font-size:.5rem;font-weight:800;min-width:14px;height:14px;border-radius:7px;padding:0 .25rem;display:flex;align-items:center;justify-content:center;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:.55rem .2rem;min-height:70px;border:none;background:none;cursor:pointer;color:var(--gris);font-size:.75rem;font-weight:800;gap:.25rem;transition:var(--t);position:relative;min-width:0;letter-spacing:.2px;}
+.nav-btn .ni{font-size:2rem;line-height:1;}
+.nav-btn:hover{color:var(--bleu2);background:var(--bleu3);}
+.nav-btn.active{color:var(--bleu);background:var(--bleu3);}
+.nav-btn.active::after{content:'';position:absolute;top:0;left:10%;right:10%;height:3px;background:var(--orange);border-radius:0 0 6px 6px;}
+.nav-badge{position:absolute;top:.35rem;right:calc(50% - 1.3rem);background:var(--rouge);color:#fff;font-size:.55rem;font-weight:800;min-width:16px;height:16px;border-radius:8px;padding:0 .3rem;display:flex;align-items:center;justify-content:center;}
 
 /* [5] Cards & composants */
 .card{background:#fff;border-radius:var(--r);padding:1rem;box-shadow:var(--ombre2);margin-bottom:.75rem;}
@@ -123,9 +126,9 @@ body.show-app #screen-app{display:flex;}
 
 /* [6] Dashboard */
 .dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:.5rem;margin-bottom:.75rem;}
-.stat-card{background:#fff;border-radius:var(--r2);padding:.75rem .5rem;text-align:center;box-shadow:var(--ombre2);}
-.stat-num{font-size:1.6rem;font-weight:900;line-height:1;}
-.stat-lbl{font-size:.6rem;font-weight:800;color:var(--gris);text-transform:uppercase;letter-spacing:.3px;margin-top:.2rem;}
+.stat-card{background:#fff;border-radius:var(--r2);padding:1rem .5rem;text-align:center;box-shadow:var(--ombre2);}
+.stat-num{font-size:2rem;font-weight:900;line-height:1;}
+.stat-lbl{font-size:.65rem;font-weight:800;color:var(--gris);text-transform:uppercase;letter-spacing:.3px;margin-top:.3rem;}
 .student-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:.6rem;}
 .sc{background:#fff;border-radius:var(--r);padding:.9rem;cursor:pointer;box-shadow:var(--ombre2);transition:var(--t);border-left:4px solid transparent;}
 .sc:hover{transform:translateY(-2px);box-shadow:var(--ombre);border-left-color:var(--bleu2);}
@@ -168,14 +171,14 @@ body.show-app #screen-app{display:flex;}
 .crit-item{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}
 .crit-nom{font-size:.75rem;font-weight:600;flex:1;min-width:120px;}
 .crit-btns{display:flex;gap:.2rem;}
-.cb{padding:.2rem .45rem;border-radius:6px;border:2px solid transparent;font-weight:800;font-size:.65rem;cursor:pointer;transition:var(--t);background:var(--gris2);}
+.cb{padding:.35rem .6rem;border-radius:6px;border:2px solid transparent;font-weight:800;font-size:.72rem;cursor:pointer;transition:var(--t);background:var(--gris2);min-height:36px;}
 .cb.b-PM{color:#1a7d3e;}.cb.b-M{color:var(--bleu2);}.cb.b-EC{color:#a06e00;}.cb.b-NE{color:var(--gris);}
 .cb.b-PM.sel{background:#d4f4e2;border-color:#1a7d3e;}.cb.b-M.sel{background:var(--bleu3);border-color:var(--bleu2);}
 .cb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.cb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}
-.comp-global{display:flex;align-items:center;gap:.5rem;padding:.5rem;background:var(--gris2);border-radius:var(--r2);margin-top:.4rem;}
-.cg-lbl{font-size:.72rem;font-weight:800;color:var(--bleu);flex-shrink:0;}
-.gb-wrap{display:flex;gap:.3rem;}
-.gb{padding:.3rem .6rem;border-radius:var(--r2);border:2px solid transparent;font-weight:800;font-size:.75rem;cursor:pointer;transition:var(--t);background:#fff;}
+.comp-global{display:flex;align-items:center;gap:.5rem;padding:.6rem;background:var(--gris2);border-radius:var(--r2);margin-top:.4rem;}
+.cg-lbl{font-size:.75rem;font-weight:800;color:var(--bleu);flex-shrink:0;}
+.gb-wrap{display:flex;gap:.35rem;}
+.gb{padding:.4rem .75rem;border-radius:var(--r2);border:2px solid transparent;font-weight:800;font-size:.82rem;cursor:pointer;transition:var(--t);background:#fff;min-height:40px;}
 .gb.b-PM{color:#1a7d3e;}.gb.b-M{color:var(--bleu2);}.gb.b-EC{color:#a06e00;}.gb.b-NE{color:var(--gris);}
 .gb.b-PM.sel{background:#d4f4e2;border-color:#1a7d3e;}.gb.b-M.sel{background:var(--bleu3);border-color:var(--bleu2);}
 .gb.b-EC.sel{background:var(--jaune2);border-color:var(--jaune);}.gb.b-NE.sel{background:var(--gris3);border-color:var(--gris);}
@@ -326,6 +329,7 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('importCsv').click()">📥 Import CSV/XLSX</button>
         <input type="file" id="importCsv" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleImportFile(this.files[0])">
         <button class="btn btn-ghost btn-sm" onclick="showQRAll()">📱 QR codes</button>
+        <button class="btn btn-ghost btn-sm" onclick="showScanner()">📷 Scanner</button>
         <button class="btn btn-ghost btn-sm" onclick="syncAll()">🔄 Sync</button>
       </div>
       <div id="elevesList"><div class="empty"><div class="ei">👥</div><p>Aucun élève</p></div></div>
@@ -1139,16 +1143,27 @@ async function importRows(rows){
 function showQR(code){
   const s=students.find(x=>x.code===code)||{nom:'?',prenom:''};
   const base=cfg.baseUrl||'';
+  const baseProf=window.location.href.split('?')[0];
   const ue=`${base}inerweb_eleve.html?eleve=${code}&token=${s.token_eleve||'TOKEN'}`;
   const ut=`${base}inerweb_tuteur.html?eleve=${code}&tuteur=${s.token_tuteur||'TUTEUR'}`;
+  const up=`${baseProf}?key=${cfg.apiKey}&eleve=${code}&mode=ep2`;
   showModal(`📱 QR Codes — ${s.nom} ${s.prenom||''}`,`
   <div class="qr-wrap">
     <div class="qr-item"><div class="qr-lbl">📱 Lien élève</div><div id="qre" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${ue}</div></div>
     <div class="qr-item"><div class="qr-lbl">🏢 Lien tuteur</div><div id="qrt" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${ut}</div></div>
+    <div class="qr-item" style="border-top:2px solid var(--orange)"><div class="qr-lbl" style="color:var(--orange)">⚡ Badge prof (scan rapide → EP2)</div><div id="qrp" style="display:flex;justify-content:center;margin-bottom:.4rem"></div><div class="qr-url">${up}</div></div>
   </div>`,'<button class="btn btn-ghost" onclick="closeModal()">Fermer</button>');
   setTimeout(()=>{
-    try{new QRCode(document.getElementById('qre'),{text:ue,width:130,height:130});new QRCode(document.getElementById('qrt'),{text:ut,width:130,height:130});}
-    catch{document.getElementById('qre').textContent=ue;document.getElementById('qrt').textContent=ut;}
+    try{
+      new QRCode(document.getElementById('qre'),{text:ue,width:130,height:130});
+      new QRCode(document.getElementById('qrt'),{text:ut,width:130,height:130});
+      new QRCode(document.getElementById('qrp'),{text:up,width:130,height:130});
+    }
+    catch{
+      document.getElementById('qre').textContent=ue;
+      document.getElementById('qrt').textContent=ut;
+      document.getElementById('qrp').textContent=up;
+    }
   },100);
 }
 function showQRAll(){
@@ -1459,12 +1474,106 @@ function updateAll(){renderDash();renderEleves();popSelects();updateStor();if(ap
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key==='s'){e.preventDefault();saveLocal();toast('💾 Sauvegardé','ok');}});
 
 /* ═══ [M] INIT ═══ */
-function initApp(){loadLocal();loadCfgToForm();updateAll();syncAll();setPhase('formatif');}
+function initApp(){
+  loadLocal();loadCfgToForm();updateAll();syncAll();setPhase('formatif');
+  // [Phase 3] Deep-link : ?eleve=ELV-001&mode=ep2
+  handleDeepLink();
+}
+
+/* ═══ [N] DEEP-LINK + SCANNER QR ═══ */
+function handleDeepLink(){
+  const p=new URLSearchParams(window.location.search);
+  const eleve=p.get('eleve');
+  const mode=p.get('mode')||'ep2';
+  if(!eleve)return;
+  // Attend que les données soient chargées (sync peut être en cours)
+  const tryNav=()=>{
+    const s=students.find(x=>x.code===eleve);
+    if(s){
+      cur=eleve;
+      const tab=mode==='ep3'?'ep3':mode==='bilan'?'bilan':'ep2';
+      switchTab(tab);
+      toast(`📱 ${s.nom} ${s.prenom||''} — ${tab.toUpperCase()}`,'ok');
+    } else {
+      setTimeout(tryNav,800);
+    }
+  };
+  setTimeout(tryNav,600);
+}
+
+function showScanner(){
+  showModal('📷 Scanner un badge élève',`
+    <div style="text-align:center;margin-bottom:.75rem">
+      <video id="scanVid" style="width:100%;max-width:320px;border-radius:var(--r);background:#000" autoplay playsinline></video>
+      <canvas id="scanCanvas" style="display:none"></canvas>
+    </div>
+    <div id="scanStatus" class="alert al-info" style="text-align:center;font-size:.8rem">Pointez la caméra vers le QR code</div>`,
+    `<button class="btn btn-ghost" onclick="stopScanner();closeModal()">✖ Fermer</button>`
+  );
+  startScanner();
+}
+
+let _scanStream=null,_scanTimer=null;
+
+async function startScanner(){
+  try{
+    _scanStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    const vid=document.getElementById('scanVid');
+    if(!vid){stopScanner();return;}
+    vid.srcObject=_scanStream;
+    await vid.play();
+    _scanTimer=setInterval(()=>scanFrame(),300);
+  }catch(e){
+    const st=document.getElementById('scanStatus');
+    if(st)st.innerHTML='<span style="color:var(--rouge)">⚠️ Caméra non disponible — '+e.message+'</span>';
+  }
+}
+
+function scanFrame(){
+  const vid=document.getElementById('scanVid');
+  const cvs=document.getElementById('scanCanvas');
+  if(!vid||!cvs||vid.readyState<2)return;
+  cvs.width=vid.videoWidth;cvs.height=vid.videoHeight;
+  const ctx=cvs.getContext('2d');
+  ctx.drawImage(vid,0,0);
+  try{
+    const img=ctx.getImageData(0,0,cvs.width,cvs.height);
+    // BarcodeDetector API (Chrome/Edge moderne)
+    if('BarcodeDetector' in window){
+      new BarcodeDetector({formats:['qr_code']}).detect(cvs).then(codes=>{
+        if(codes.length>0)handleQRResult(codes[0].rawValue);
+      }).catch(()=>{});
+    }
+  }catch{}
+}
+
+function handleQRResult(url){
+  stopScanner();closeModal();
+  try{
+    const u=new URL(url);
+    const eleve=u.searchParams.get('eleve');
+    const mode=u.searchParams.get('mode')||'ep2';
+    if(eleve){
+      cur=eleve;
+      const tab=mode==='ep3'?'ep3':mode==='bilan'?'bilan':'ep2';
+      switchTab(tab);
+      const s=students.find(x=>x.code===eleve);
+      toast(`📱 ${s?s.nom+' '+(s.prenom||''):eleve} chargé`,'ok');
+    } else {
+      toast('QR non reconnu','warn');
+    }
+  }catch{toast('QR invalide','err');}
+}
+
+function stopScanner(){
+  if(_scanTimer){clearInterval(_scanTimer);_scanTimer=null;}
+  if(_scanStream){_scanStream.getTracks().forEach(t=>t.stop());_scanStream=null;}
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   if(loadConfig()){startApp();}
   else{
     document.body.classList.add('show-config');
-    const e=document.getElementById;
     document.getElementById('cfgUrl').value='https://script.google.com/macros/s/AKfycbx2s-e-SLPHcSCheFn8bCuWdSY3jIZ1VjNdTJxJsF6CUeZeIA7tQysML_vqPrdLv9ScmA/exec';document.getElementById('cfgKey').value='';
     document.getElementById('cfgNom').value='F. Henninot';
     document.getElementById('cfgBase').value='https://frigorx.github.io/inerweb-tt/';
