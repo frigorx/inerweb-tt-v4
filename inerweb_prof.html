@@ -1820,14 +1820,37 @@ function importCSV(txt){
   const hdr=lines[0].split(/[,;]/).map(h=>h.trim().toLowerCase());
   importRows(lines.slice(1).map(l=>{const v=l.split(/[,;]/);const o={};hdr.forEach((h,i)=>o[h]=(v[i]||'').trim());return o;}));
 }
+function splitNomPrenom(raw){
+  raw=(raw||'').trim();
+  if(!raw)return{nom:'',prenom:''};
+  const parts=raw.split(/\s+/);
+  // Trouver les mots en MAJUSCULES = nom de famille
+  const nomParts=[],prenomParts=[];
+  for(const p of parts){
+    if(p===p.toUpperCase()&&p.length>1)nomParts.push(p);
+    else prenomParts.push(p);
+  }
+  if(nomParts.length>0&&prenomParts.length>0)return{nom:nomParts.join(' '),prenom:prenomParts.join(' ')};
+  // Fallback: premier mot = nom, reste = prénom
+  return{nom:parts[0].toUpperCase(),prenom:parts.slice(1).join(' ')};
+}
 async function importRows(rows){
   let n=0;showSpinner();
   for(const r of rows){
-    const nom=(r['nom']||r['NOM']||r['Nom']||'').toUpperCase().trim();
-    const prenom=(r['prenom']||r['PRENOM']||r['prénom']||'').trim();
+    let nom=(r['nom']||r['NOM']||r['Nom']||'').trim();
+    let prenom=(r['prenom']||r['PRENOM']||r['prénom']||'').trim();
+    // Si pas de colonne prénom séparée, tenter de séparer nom+prénom
+    if(nom&&!prenom){const sp=splitNomPrenom(nom);nom=sp.nom;prenom=sp.prenom;}
+    // Si aucune colonne nom, chercher "élève", "eleve", "identité", "nom prénom", "nom et prénom"
+    if(!nom){
+      const raw=(r['élève']||r['eleve']||r['identité']||r['identite']||r['nom prénom']||r['nom prenom']||r['nom et prénom']||r['apprenant']||Object.values(r)[0]||'').trim();
+      const sp=splitNomPrenom(raw);nom=sp.nom;prenom=sp.prenom;
+    }
+    nom=nom.toUpperCase().trim();
+    const classe=(r['classe']||r['formation']||r['filière']||r['filiere']||r['groupe']||'CAP IFCA 1').trim();
     if(!nom||students.find(s=>s.nom===nom&&s.prenom===prenom))continue;
-    try{await apiCall({action:'addEleve',data:{nom,prenom,classe:r['classe']||'CAP IFCA 1',referentiel:'CAP_IFCA'}});n++;}
-    catch{const code='ELV-'+String(students.length+1).padStart(3,'0');students.push({code,nom,prenom,classe:r['classe']||'CAP IFCA 1',statut:'actif',referentiel:'CAP_IFCA',token_eleve:Math.random().toString(36).substring(2,10).toUpperCase(),token_tuteur:Math.random().toString(36).substring(2,10).toUpperCase()});n++;}
+    try{await apiCall({action:'addEleve',data:{nom,prenom,classe,referentiel:'CAP_IFCA'}});n++;}
+    catch{const code='ELV-'+String(students.length+1).padStart(3,'0');students.push({code,nom,prenom,classe,statut:'actif',referentiel:'CAP_IFCA',token_eleve:Math.random().toString(36).substring(2,10).toUpperCase(),token_tuteur:Math.random().toString(36).substring(2,10).toUpperCase()});n++;}
   }
   saveLocal();await syncAll();hideSpinner();toast(`${n} élève(s) importé(s)`,'ok');
 }
