@@ -841,7 +841,8 @@ function loadDemoMode(){
   demoMode=true; startApp();
   setTimeout(()=>{loadDemoData();document.body.classList.add('demo-mode');},200);
 }
-function loadConfig(){const s=localStorage.getItem(SCFG);if(s){cfg=JSON.parse(s);return true;}return false;}
+const DEFAULT_CFG={apiUrl:'https://script.google.com/macros/s/AKfycbzEbzLo57x0u0k2wjAzyLdZ42iVZdHdOwmPd5Ioe6fjApuSftuSckZ9svKpajbyjEuhVg/exec',apiKey:'IFCA4-MMDU-GG7G-KX39',nomProf:'F. Henninot',baseUrl:'https://frigorx.github.io/inerweb-tt-v4/'};
+function loadConfig(){const s=localStorage.getItem(SCFG);if(s){cfg=JSON.parse(s);cfg.apiUrl=cleanUrl(cfg.apiUrl||'');if(!cfg.apiUrl||cfg.apiUrl.length<20){cfg=Object.assign({},DEFAULT_CFG);}return true;}cfg=Object.assign({},DEFAULT_CFG);localStorage.setItem(SCFG,JSON.stringify(cfg));return true;}
 function startApp(){
   document.getElementById('screen-config').style.display='none';
   document.getElementById('screen-app').style.display='flex';
@@ -2597,13 +2598,7 @@ function stopScanner(){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
-  if(loadConfig()){startApp();}
-  else{
-    document.body.classList.add('show-config');
-    document.getElementById('cfgUrl').value='https://script.google.com/macros/s/AKfycbx2s-e-SLPHcSCheFn8bCuWdSY3jIZ1VjNdTJxJsF6CUeZeIA7tQysML_vqPrdLv9ScmA/exec';document.getElementById('cfgKey').value='';
-    document.getElementById('cfgNom').value='F. Henninot';
-    document.getElementById('cfgBase').value='https://frigorx.github.io/inerweb-tt/';
-  }
+  loadConfig();startApp();
 });
 </script>
 </body>
