@@ -311,10 +311,10 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
       <code>Clé maître</code> = MASTER_KEY dans Code.gs
     </div>
     <div class="cfg-form">
-      <div class="fr"><label>URL API Google Apps Script</label><input id="cfgUrl" type="url" placeholder="https://script.google.com/macros/s/..."></div>
-      <div class="fr"><label>Clé maître</label><input id="cfgKey" type="password" placeholder="IFCA-2026-PROF-XXXXX"></div>
-      <div class="fr"><label>Votre nom</label><input id="cfgNom" placeholder="F. Henninot"></div>
-      <div class="fr"><label>URL GitHub Pages (QR codes)</label><input id="cfgBase" placeholder="https://frigorx.github.io/inerweb-tt/"></div>
+      <div class="fr"><label>URL API Google Apps Script</label><input id="cfgUrl" type="url" value="https://script.google.com/macros/s/AKfycbzEbzLo57x0u0k2wjAzyLdZ42iVZdHdOwmPd5Ioe6fjApuSftuSckZ9svKpajbyjEuhVg/exec" placeholder="https://script.google.com/macros/s/..."></div>
+      <div class="fr"><label>Clé maître</label><input id="cfgKey" type="password" value="IFCA4-MMDU-GG7G-KX39" placeholder="IFCA-2026-PROF-XXXXX"></div>
+      <div class="fr"><label>Votre nom</label><input id="cfgNom" value="F. Henninot" placeholder="F. Henninot"></div>
+      <div class="fr"><label>URL GitHub Pages (QR codes)</label><input id="cfgBase" value="https://frigorx.github.io/inerweb-tt-v4/" placeholder="https://frigorx.github.io/inerweb-tt/"></div>
       <div style="display:flex;flex-direction:column;gap:.5rem;margin-top:.5rem;">
         <button class="btn btn-orange btn-full" onclick="saveConfig()">▶ Accéder à la plateforme</button>
         <button class="btn btn-ghost btn-full" onclick="loadDemoMode()">🎮 Mode démo (données fictives IFCA)</button>
@@ -326,8 +326,8 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
 <!-- ÉCRAN APP -->
 <div id="screen-app">
   <header class="app-header">
-    <div class="hdr-logo"><span class="hdr-logo-ico">❄️</span><div class="hdr-logo-name">inerWeb TT<em>CAP IFCA — Marseille</em></div></div>
-    <div class="hdr-mid" id="hdrEtab">Campus Equatio</div>
+    <div class="hdr-logo"><span class="hdr-logo-ico">❄️</span><div class="hdr-logo-name">inerWeb TT<em>CAP IFCA</em></div></div>
+    <div class="hdr-mid" id="hdrEtab">Établissement</div>
     <div class="hdr-right">
       <div class="sync-pill" onclick="syncAll()"><span class="sync-dot syncing" id="syncDot"></span><span id="syncLbl">Sync...</span></div>
       <button class="btn btn-ghost btn-xs" onclick="showParamModal()">⚙️</button>
@@ -540,8 +540,8 @@ body.demo-mode::after{content:'MODE DÉMO';position:fixed;top:56px;left:50%;tran
     <div class="tab-pane" id="tab-config"><div class="tab-inner">
       <div class="card">
         <div class="card-title">⚙️ Configuration établissement</div>
-        <div class="fr" style="margin-bottom:.6rem;"><label>Établissement</label><input id="cEtab" placeholder="Lycée Pro. Privé Jacques Raynaud"></div>
-        <div class="grid2" style="margin-bottom:.6rem;"><div class="fr"><label>Ville</label><input id="cVille" placeholder="Marseille"></div><div class="fr"><label>Académie</label><input id="cAcad" placeholder="Aix-Marseille"></div></div>
+        <div class="fr" style="margin-bottom:.6rem;"><label>Établissement</label><input id="cEtab" placeholder="Nom de l'établissement"></div>
+        <div class="grid2" style="margin-bottom:.6rem;"><div class="fr"><label>Ville</label><input id="cVille" placeholder="Ville"></div><div class="fr"><label>Académie</label><input id="cAcad" placeholder="Académie"></div></div>
         <div class="grid2" style="margin-bottom:.6rem;"><div class="fr"><label>Session</label><input id="cSession" type="number" value="2026"></div><div class="fr"><label>Évaluateur principal</label><input id="cEval" placeholder="F. Henninot"></div></div>
         <div class="fr" style="margin-bottom:.6rem;"><label>Évaluateur collègue</label><input id="cCollegue" placeholder="J. Martin"></div>
         <div style="border-top:1px solid var(--gris3);padding-top:.75rem;margin-top:.5rem;">
@@ -816,12 +816,14 @@ async function loadLocalData(){
 
 /* ═══ [C] CORE ═══ */
 function cleanUrl(raw){
-  raw=raw.trim();
-  // Supprime tout protocole malformé et remet https://
+  raw=raw.replace(/\s+/g,'').trim();
+  // Extraire la DERNIÈRE URL valide (au cas où concaténation)
+  const all=[...raw.matchAll(/script\.google\.com\/macros\/s\/[A-Za-z0-9_-]+\/exec/g)];
+  if(all.length>0) return 'https://'+all[all.length-1][0];
+  // Fallback: extraire l'ID de déploiement
+  const id=raw.match(/AKfycb[A-Za-z0-9_-]+/);
+  if(id) return 'https://script.google.com/macros/s/'+id[0]+'/exec';
   raw=raw.replace(/^(https?:\/\/|script\.\w+\/\/|https?\/\/)/i,'');
-  // Supprime les doublons de domaine
-  const m=raw.match(/(script\.google\.com\/macros\/s\/[^?]+)/);
-  if(m)raw=m[1];
   return 'https://'+raw;
 }
 function saveConfig(){
@@ -1860,7 +1862,7 @@ function showQRAll(){
   doc.setTextColor(255,255,255);doc.setFontSize(9);doc.setFont('helvetica','bold');
   doc.text('inerWeb TT 4.0 — Badges QR élèves & tuteurs',10,9);
   doc.setFontSize(7);doc.setFont('helvetica','normal');
-  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} · ${appCfg.etablissement||'Campus Equatio'}`,130,9);
+  doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} · ${appCfg.etablissement||'Établissement'}`,130,9);
   y=20;
   // Canvas temporaire pour générer QR en base64
   const genQRDataUrl=(text)=>new Promise(resolve=>{
@@ -1920,7 +1922,7 @@ async function exportStudentPDF(){
   doc.setTextColor(255,255,255);doc.setFontSize(13);doc.setFont('helvetica','bold');
   doc.text('inerWeb TT 4.0 — Rapport CCF',10,10);
   doc.setFontSize(8);doc.setFont('helvetica','normal');
-  doc.text(`${appCfg.etablissement||'Campus Equatio'} · ${appCfg.ville||'Marseille'} · Session ${appCfg.session||2026}`,10,17);
+  doc.text(`${appCfg.etablissement||'Établissement'} · ${appCfg.ville||''} · Session ${appCfg.session||2026}`,10,17);
   doc.text(`Généré le ${new Date().toLocaleDateString('fr-FR')} par ${cfg.nomProf||'Enseignant'}`,130,17);
   y=30;
   doc.setTextColor(27,58,99);doc.setFontSize(14);doc.setFont('helvetica','bold');
@@ -2124,7 +2126,7 @@ function saveAppConfig(){
   appCfg.pctEC=parseInt(document.getElementById('cEC').value)||35;
   NV_PCT.PM=appCfg.pctPM;NV_PCT.M=appCfg.pctM;NV_PCT.EC=appCfg.pctEC;
   saveLocal();
-  document.getElementById('hdrEtab').textContent=`${appCfg.etablissement||'Campus Equatio'} — Session ${appCfg.session||2026}`;
+  document.getElementById('hdrEtab').textContent=`${appCfg.etablissement||'Établissement'} — Session ${appCfg.session||2026}`;
   toast('Configuration enregistrée','ok');
 }
 function loadCfgToForm(){
